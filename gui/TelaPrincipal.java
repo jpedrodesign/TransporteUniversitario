@@ -433,6 +433,8 @@ public class TelaPrincipal extends JFrame {
         sb.append("Origem: ").append(origem.getNome()).append("\n");
         sb.append("Saida e retorno focados na UFRB.\n\n");
 
+        List<List<Ponto>> rotas = new ArrayList<List<Ponto>>();
+
         for (Ponto destino : pontos) {
 
             if (destino.equals(origem)) {
@@ -443,6 +445,8 @@ public class TelaPrincipal extends JFrame {
                     Dijkstra.encontrarCaminho(grafo, origem, destino);
             double distancia = distancias.get(destino);
             double tempo = calcularTempo(distancia);
+
+            rotas.add(caminho);
 
             sb.append(destino.getNome())
                     .append("\n");
@@ -456,6 +460,7 @@ public class TelaPrincipal extends JFrame {
                     .append("\n");
         }
 
+        painelMapa.definirRotas(rotas);
         painelResultado.exibirMensagem(sb.toString());
     }
 
