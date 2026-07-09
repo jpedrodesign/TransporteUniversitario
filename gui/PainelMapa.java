@@ -4,6 +4,7 @@ import model.Aresta;
 import model.Ponto;
 import model.Rota;
 
+import javax.imageio.ImageIO;
 import javax.swing.BorderFactory;
 import javax.swing.JPanel;
 import javax.swing.Timer;
@@ -15,6 +16,9 @@ import java.awt.Font;
 import java.awt.Graphics;
 import java.awt.Graphics2D;
 import java.awt.RenderingHints;
+import java.awt.image.BufferedImage;
+import java.io.File;
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
@@ -35,6 +39,7 @@ public class PainelMapa extends JPanel {
     private int animacaoIndex;
     private int animacaoProgresso;
     private int zoom;
+    private BufferedImage imagemFundo;
 
     private static final Color[] PALETTE_COLORS = {
             new Color(255, 102, 102),
@@ -63,10 +68,34 @@ public class PainelMapa extends JPanel {
         setLayout(new BorderLayout());
         setBorder(BorderFactory.createTitledBorder("Mapa - Cruz das Almas"));
         setPreferredSize(new Dimension(900, 500));
-        setBackground(new Color(255, 255, 255));
+        setOpaque(false);
+
+        carregarImagemFundo();
 
         timerAnimacao = new Timer(100, e -> atualizarAnimacao());
         timerAnimacao.start();
+    }
+
+    private void carregarImagemFundo() {
+
+        imagemFundo = null;
+
+        String[] caminhos = {
+                "mapa/mapa_de_cuz.png",
+                "mapa/mapa_de_cruz.png"
+        };
+
+        for (String caminho : caminhos) {
+            try {
+                File arquivo = new File(caminho);
+                if (arquivo.exists()) {
+                    imagemFundo = ImageIO.read(arquivo);
+                    break;
+                }
+            } catch (IOException ex) {
+                imagemFundo = null;
+            }
+        }
     }
 
     public void adicionarPonto(Ponto ponto) {
@@ -190,8 +219,7 @@ public class PainelMapa extends JPanel {
                 RenderingHints.VALUE_ANTIALIAS_ON
         );
 
-        desenharFundo(g2);
-        desenharRuaBase(g2);
+        desenharImagemDeFundo(g2);
         desenharArestas(g2);
         desenharRotasColoridas(g2);
         desenharArestasDestaque(g2);
@@ -202,33 +230,20 @@ public class PainelMapa extends JPanel {
         g2.dispose();
     }
 
-    private void desenharFundo(Graphics2D g2) {
+    private void desenharImagemDeFundo(Graphics2D g2) {
 
-        int w = getWidth();
-        int h = getHeight();
-
-        g2.setColor(Color.WHITE);
-        g2.fillRect(0, 0, w, h);
-
-        g2.setColor(new Color(220, 220, 220, 120));
-        for (int x = 0; x < w; x += 56) {
-            g2.drawLine(x, 0, x, h);
+        if (imagemFundo == null) {
+            return;
         }
-        for (int y = 0; y < h; y += 56) {
-            g2.drawLine(0, y, w, y);
-        }
-    }
 
-    private void desenharRuaBase(Graphics2D g2) {
-
-        int w = getWidth();
-        int h = getHeight();
-
-        g2.setColor(new Color(240, 240, 240));
-        g2.fillRoundRect(14, 14, w - 28, h - 28, 18, 18);
-
-        g2.setColor(new Color(200, 200, 200, 150));
-        g2.drawRoundRect(14, 14, w - 28, h - 28, 18, 18);
+        g2.drawImage(
+                imagemFundo,
+                0,
+                0,
+                getWidth(),
+                getHeight(),
+                this
+        );
     }
 
     private void desenharArestas(Graphics2D g2) {
