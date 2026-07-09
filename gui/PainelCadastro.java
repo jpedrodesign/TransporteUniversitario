@@ -1,8 +1,8 @@
 package gui;
 
+import java.awt.*;
 import javax.swing.*;
 import javax.swing.plaf.basic.BasicButtonUI;
-import java.awt.*;
 
 public class PainelCadastro extends JPanel {
 
@@ -15,7 +15,7 @@ public class PainelCadastro extends JPanel {
 
     public PainelCadastro() {
 
-        setLayout(new GridLayout(11, 1, 5, 5));
+        setLayout(new GridBagLayout());
 
         setPreferredSize(
                 new Dimension(250, 600)
@@ -28,15 +28,19 @@ public class PainelCadastro extends JPanel {
         );
 
         txtNome = new JTextField();
+        txtNome.setPreferredSize(new Dimension(220, 32));
 
         txtLatitude = new JTextField();
         txtLatitude.setText("-12.6700");
+        txtLatitude.setPreferredSize(new Dimension(220, 32));
 
         txtLongitude = new JTextField();
         txtLongitude.setText("-39.1019");
+        txtLongitude.setPreferredSize(new Dimension(220, 32));
 
         txtAlunos = new JTextField();
         txtAlunos.setText("20");
+        txtAlunos.setPreferredSize(new Dimension(220, 32));
 
         btnCadastrar =
                 new JButton("Adicionar ponto") {
@@ -64,6 +68,7 @@ public class PainelCadastro extends JPanel {
         btnCadastrar.setForeground(Color.WHITE);
         btnCadastrar.setFont(new Font("Segoe UI", Font.BOLD, 14));
         btnCadastrar.setUI(new BasicButtonUI());
+        btnCadastrar.setPreferredSize(new Dimension(220, 38));
         btnCadastrar.setBorder(
                 BorderFactory.createCompoundBorder(
                         BorderFactory.createLineBorder(new Color(28, 70, 117)),
@@ -81,21 +86,46 @@ public class PainelCadastro extends JPanel {
         ajuda.setWrapStyleWord(true);
         ajuda.setEditable(false);
         ajuda.setOpaque(false);
+        ajuda.setPreferredSize(new Dimension(220, 80));
+        ajuda.setMinimumSize(new Dimension(220, 80));
+        ajuda.setMaximumSize(new Dimension(220, 120));
 
-        add(new JLabel("Nome do ponto"));
-        add(txtNome);
+        GridBagConstraints gbc = new GridBagConstraints();
+        gbc.gridx = 0;
+        gbc.fill = GridBagConstraints.HORIZONTAL;
+        gbc.insets = new Insets(2, 0, 2, 0);
+        gbc.anchor = GridBagConstraints.WEST;
 
-        add(new JLabel("Latitude"));
-        add(txtLatitude);
+        adicionarLinha(this, gbc, new JLabel("Nome do ponto"), txtNome);
+        adicionarLinha(this, gbc, new JLabel("Latitude"), txtLatitude);
+        adicionarLinha(this, gbc, new JLabel("Longitude"), txtLongitude);
+        adicionarLinha(this, gbc, new JLabel("Qtd. Alunos"), txtAlunos);
 
-        add(new JLabel("Longitude"));
-        add(txtLongitude);
+        gbc.gridy++;
+        gbc.weightx = 1.0;
+        gbc.insets = new Insets(8, 0, 4, 0);
+        add(btnCadastrar, gbc);
 
-        add(new JLabel("Qtd. Alunos"));
-        add(txtAlunos);
+        gbc.gridy++;
+        gbc.insets = new Insets(4, 0, 0, 0);
+        gbc.weighty = 1.0;
+        add(ajuda, gbc);
+    }
 
-        add(btnCadastrar);
-        add(ajuda);
+    private void adicionarLinha(
+            Container container,
+            GridBagConstraints gbc,
+            JLabel label,
+            JTextField campo
+    ) {
+        gbc.gridy++;
+        gbc.weightx = 0.0;
+        gbc.insets = new Insets(2, 0, 2, 0);
+        container.add(label, gbc);
+
+        gbc.gridy++;
+        gbc.weightx = 1.0;
+        container.add(campo, gbc);
     }
 
     public JButton getBtnCadastrar() {
