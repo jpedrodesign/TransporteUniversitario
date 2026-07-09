@@ -17,6 +17,7 @@ import javax.swing.JFrame;
 import javax.swing.JLabel;
 import javax.swing.JOptionPane;
 import javax.swing.JPanel;
+import javax.swing.JSplitPane;
 import javax.swing.plaf.basic.BasicButtonUI;
 import java.awt.BorderLayout;
 import java.awt.Color;
@@ -74,6 +75,7 @@ public class TelaPrincipal extends JFrame {
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         setLocationRelativeTo(null);
         setLayout(new BorderLayout());
+        setExtendedState(JFrame.MAXIMIZED_BOTH);
     }
 
     private void inicializarComponentes() {
@@ -84,8 +86,6 @@ public class TelaPrincipal extends JFrame {
         add(painelMapa, BorderLayout.CENTER);
 
         painelResultado = new PainelResultado();
-        add(painelResultado, BorderLayout.SOUTH);
-
         painelCadastro = new PainelCadastro();
         painelCadastro.getBtnCadastrar().addActionListener(
                 e -> cadastrarNovoPonto()
@@ -93,11 +93,30 @@ public class TelaPrincipal extends JFrame {
 
         painelBairros = new PainelBairros();
 
+        JPanel painelInferior = new JPanel(new BorderLayout());
+        painelInferior.setOpaque(false);
+
+        JSplitPane splitInferior = new JSplitPane(
+                JSplitPane.HORIZONTAL_SPLIT,
+                painelResultado,
+                painelBairros
+        );
+        splitInferior.setBorder(null);
+        splitInferior.setDividerSize(8);
+        splitInferior.setResizeWeight(0.83);
+        splitInferior.setDividerLocation(0.83);
+        splitInferior.setContinuousLayout(true);
+
+        painelResultado.setPreferredSize(new Dimension(1000, 220));
+        painelBairros.setPreferredSize(new Dimension(260, 220));
+
+        painelInferior.add(splitInferior, BorderLayout.CENTER);
+        add(painelInferior, BorderLayout.SOUTH);
+
         JPanel painelLateral = new JPanel(new BorderLayout());
         painelLateral.setPreferredSize(new Dimension(260, 700));
         painelLateral.setBackground(new Color(18, 24, 31));
-        painelLateral.add(painelCadastro, BorderLayout.NORTH);
-        painelLateral.add(painelBairros, BorderLayout.CENTER);
+        painelLateral.add(painelCadastro, BorderLayout.CENTER);
 
         add(painelLateral, BorderLayout.EAST);
     }
