@@ -63,6 +63,8 @@ public class MapPanel extends JPanel {
     public MapPanel() {
         setLayout(new BorderLayout());
         setPreferredSize(new Dimension(800, 600));
+        setBorder(javax.swing.BorderFactory.createLineBorder(UiTheme.BORDER));
+        setBackground(UiTheme.SURFACE);
 
         mapViewer.setTileFactory(new DefaultTileFactory(new SecureOSMTileFactoryInfo()));
         mapViewer.setCenterPosition(new GeoPosition(-12.6723, -39.1054));

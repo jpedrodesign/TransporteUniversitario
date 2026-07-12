@@ -1,4 +1,5 @@
 import gui.MainWindow;
+import gui.UiTheme;
 
 import javax.swing.*;
 
@@ -15,6 +16,7 @@ public class Main {
         try {
             UIManager.setLookAndFeel(UIManager.getSystemLookAndFeelClassName());
         } catch (Exception ignored) {}
+        UiTheme.aplicar();
 
         SwingUtilities.invokeLater(() -> {
             MainWindow window = new MainWindow();

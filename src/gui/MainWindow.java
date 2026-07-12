@@ -12,6 +12,8 @@ import util.PDFExporter;
 import util.TXTExporter;
 
 import javax.swing.BorderFactory;
+import javax.swing.Box;
+import javax.swing.BoxLayout;
 import javax.swing.JButton;
 import javax.swing.JCheckBoxMenuItem;
 import javax.swing.JFileChooser;
@@ -28,6 +30,7 @@ import javax.swing.JSpinner;
 import javax.swing.SpinnerNumberModel;
 import javax.swing.JSplitPane;
 import javax.swing.JToolBar;
+import javax.swing.JTabbedPane;
 import javax.swing.SwingWorker;
 import javax.swing.filechooser.FileNameExtensionFilter;
 
@@ -68,6 +71,8 @@ public class MainWindow extends JFrame {
     private final NavigationTreePanel treePanel = new NavigationTreePanel();
     private final DetailsPanel detailsPanel = new DetailsPanel();
     private final BottomRoutePanel bottomRoutePanel = new BottomRoutePanel();
+    private final StatisticsPanel statisticsPanel = new StatisticsPanel();
+    private final JTabbedPane telas = new JTabbedPane();
     private final JLabel statusLabel = new JLabel("Pronto");
     private final JProgressBar progressBar = new JProgressBar();
     private final JSpinner velocidadeAnimacao = new JSpinner(new SpinnerNumberModel(40, 5, 120, 5));
@@ -100,87 +105,186 @@ public class MainWindow extends JFrame {
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         setExtendedState(JFrame.MAXIMIZED_BOTH);
         setMinimumSize(new Dimension(1280, 780));
+        getContentPane().setBackground(UiTheme.BACKGROUND);
     }
 
     private void configurarLayout() {
-        JPanel root = new JPanel(new BorderLayout(8, 8));
-        root.setBorder(BorderFactory.createEmptyBorder(8, 8, 8, 8));
+        JPanel root = new JPanel(new BorderLayout(10, 10));
+        root.setBackground(UiTheme.BACKGROUND);
+        root.setBorder(BorderFactory.createEmptyBorder(10, 12, 10, 12));
         setContentPane(root);
 
-        JSplitPane centro = new JSplitPane(JSplitPane.HORIZONTAL_SPLIT,
-                criarPainelEsquerdo(),
-                criarPainelCentroEDireito());
-        centro.setResizeWeight(0.18);
-        centro.setDividerLocation(260);
-
-        JPanel south = new JPanel(new BorderLayout(6, 6));
-        south.add(bottomRoutePanel, BorderLayout.CENTER);
-        south.add(criarBarraStatus(), BorderLayout.SOUTH);
-
-        root.add(criarToolbar(), BorderLayout.NORTH);
-        root.add(centro, BorderLayout.CENTER);
-        root.add(south, BorderLayout.SOUTH);
+        root.add(criarCabecalho(), BorderLayout.NORTH);
+        root.add(criarTelas(), BorderLayout.CENTER);
+        root.add(criarBarraStatus(), BorderLayout.SOUTH);
     }
 
-    private JPanel criarPainelEsquerdo() {
-        JPanel painel = new JPanel(new BorderLayout());
-        painel.add(treePanel, BorderLayout.CENTER);
-        painel.setPreferredSize(new Dimension(260, 0));
-        return painel;
+    private JTabbedPane criarTelas() {
+        telas.setFont(UiTheme.FONT_BOLD.deriveFont(14f));
+        telas.setBackground(UiTheme.SURFACE);
+        telas.setForeground(UiTheme.TEXT);
+        telas.setBorder(BorderFactory.createEmptyBorder());
+        telas.addTab("  Principal  ", criarTelaPrincipal());
+        telas.addTab("  Mapa  ", criarTelaMapa());
+        telas.addTab("  Rota  ", criarTelaRota());
+        telas.setToolTipTextAt(0, "Visão geral dos pontos e indicadores");
+        telas.setToolTipTextAt(1, "Mapa, percurso e animação do veículo");
+        telas.setToolTipTextAt(2, "Resumo completo e distâncias da rota");
+        return telas;
     }
 
-    private JSplitPane criarPainelCentroEDireito() {
-        JSplitPane split = new JSplitPane(JSplitPane.HORIZONTAL_SPLIT, mapPanel, detailsPanel);
-        split.setResizeWeight(0.78);
-        split.setDividerLocation(980);
-        return split;
+    private JPanel criarTelaPrincipal() {
+        JPanel direita = new JPanel(new BorderLayout(8, 8));
+        direita.setOpaque(false);
+        statisticsPanel.setPreferredSize(new Dimension(300, 210));
+        direita.add(statisticsPanel, BorderLayout.NORTH);
+        direita.add(detailsPanel, BorderLayout.CENTER);
+
+        JSplitPane split = new JSplitPane(JSplitPane.HORIZONTAL_SPLIT, treePanel, direita);
+        split.setResizeWeight(0.68);
+        split.setDividerLocation(760);
+        configurarDivisor(split);
+
+        JPanel tela = new JPanel(new BorderLayout());
+        tela.setBackground(UiTheme.BACKGROUND);
+        tela.setBorder(BorderFactory.createEmptyBorder(8, 0, 0, 0));
+        tela.add(split, BorderLayout.CENTER);
+        return tela;
+    }
+
+    private JPanel criarTelaMapa() {
+        JPanel tela = new JPanel(new BorderLayout());
+        tela.setBackground(UiTheme.BACKGROUND);
+        tela.setBorder(BorderFactory.createEmptyBorder(8, 0, 0, 0));
+        tela.add(mapPanel, BorderLayout.CENTER);
+        return tela;
+    }
+
+    private JPanel criarTelaRota() {
+        JPanel tela = new JPanel(new BorderLayout());
+        tela.setBackground(UiTheme.BACKGROUND);
+        tela.setBorder(BorderFactory.createEmptyBorder(8, 0, 0, 0));
+        tela.add(bottomRoutePanel, BorderLayout.CENTER);
+        return tela;
+    }
+
+    private void configurarDivisor(JSplitPane split) {
+        split.setBorder(null);
+        split.setDividerSize(8);
+        split.setContinuousLayout(true);
+        split.setOpaque(false);
     }
 
     private JPanel criarBarraStatus() {
         JPanel status = new JPanel(new BorderLayout(8, 8));
-        status.setBorder(BorderFactory.createEmptyBorder(2, 4, 2, 4));
+        status.setBackground(UiTheme.SURFACE);
+        status.setBorder(BorderFactory.createCompoundBorder(
+                BorderFactory.createMatteBorder(1, 0, 0, 0, UiTheme.BORDER),
+                BorderFactory.createEmptyBorder(7, 10, 3, 10)));
+        statusLabel.setForeground(UiTheme.TEXT_MUTED);
         progressBar.setIndeterminate(false);
-        progressBar.setPreferredSize(new Dimension(180, 18));
+        progressBar.setPreferredSize(new Dimension(190, 12));
+        progressBar.setBorderPainted(false);
         status.add(statusLabel, BorderLayout.CENTER);
         status.add(progressBar, BorderLayout.EAST);
         return status;
     }
 
-    private JToolBar criarToolbar() {
-        JToolBar toolbar = new JToolBar();
-        toolbar.setFloatable(false);
+    private JPanel criarCabecalho() {
+        JPanel container = new JPanel();
+        container.setLayout(new BoxLayout(container, BoxLayout.Y_AXIS));
+        container.setOpaque(false);
 
-        adicionarBotao(toolbar, "Novo ponto", e -> novoPonto());
-        adicionarBotao(toolbar, "Editar ponto", e -> editarPontoSelecionado());
-        adicionarBotao(toolbar, "Excluir ponto", e -> removerPontoSelecionado());
-        toolbar.addSeparator();
-        adicionarBotao(toolbar, "Dijkstra", e -> executarDijkstra());
+        JPanel brand = new JPanel(new BorderLayout(12, 0));
+        brand.setBackground(UiTheme.PRIMARY_DARK);
+        brand.setBorder(BorderFactory.createEmptyBorder(12, 16, 12, 12));
+        JPanel textos = new JPanel();
+        textos.setOpaque(false);
+        textos.setLayout(new BoxLayout(textos, BoxLayout.Y_AXIS));
+        JLabel titulo = new JLabel("Transporte Universitário");
+        titulo.setFont(UiTheme.FONT_BOLD.deriveFont(20f));
+        titulo.setForeground(Color.WHITE);
+        JLabel subtitulo = new JLabel("Planejamento inteligente de rotas • Cruz das Almas/BA");
+        subtitulo.setForeground(new Color(205, 222, 238));
+        textos.add(titulo);
+        textos.add(Box.createVerticalStrut(2));
+        textos.add(subtitulo);
+        brand.add(textos, BorderLayout.WEST);
+        brand.add(criarAcoesDeCadastro(), BorderLayout.EAST);
+
+        container.add(brand);
+        container.add(Box.createVerticalStrut(7));
+        container.add(criarToolbar());
+        return container;
+    }
+
+    private JToolBar criarAcoesDeCadastro() {
+        JToolBar toolbar = novaToolbar();
+        toolbar.setBackground(UiTheme.PRIMARY_DARK);
+        adicionarBotao(toolbar, "+ Novo ponto", UiTheme.ACCENT, Color.WHITE, e -> novoPonto());
+        adicionarBotao(toolbar, "Editar", new Color(54, 91, 128), Color.WHITE, e -> editarPontoSelecionado());
+        adicionarBotao(toolbar, "Excluir", UiTheme.DANGER, Color.WHITE, e -> removerPontoSelecionado());
+        return toolbar;
+    }
+
+    private JToolBar criarToolbar() {
+        JToolBar toolbar = novaToolbar();
+        toolbar.setBackground(UiTheme.SURFACE);
+        toolbar.setBorder(BorderFactory.createCompoundBorder(
+                BorderFactory.createLineBorder(UiTheme.BORDER),
+                BorderFactory.createEmptyBorder(6, 8, 6, 8)));
+
+        adicionarSecao(toolbar, "ROTAS");
+        adicionarBotao(toolbar, "Dijkstra", UiTheme.PRIMARY, Color.WHITE, e -> executarDijkstra());
         adicionarBotao(toolbar, "Prim", e -> executarPrim());
         adicionarBotao(toolbar, "Kruskal", e -> executarKruskal());
         adicionarBotao(toolbar, "BFS", e -> executarBFS());
         adicionarBotao(toolbar, "DFS", e -> executarDFS());
         adicionarBotao(toolbar, "Guloso", e -> executarGuloso());
-        adicionarBotao(toolbar, "Caixeiro", e -> executarTSP());
+        adicionarBotao(toolbar, "TSP", e -> executarTSP());
         toolbar.addSeparator();
-        adicionarBotao(toolbar, "Limpar rota", e -> limparRota());
-        adicionarBotao(toolbar, "Iniciar veículo", e -> iniciarAnimacao());
+        adicionarSecao(toolbar, "SIMULAÇÃO");
+        adicionarBotao(toolbar, "▶ Iniciar", UiTheme.ACCENT, Color.WHITE, e -> iniciarAnimacao());
         adicionarBotao(toolbar, "Pausar", e -> pausarAnimacao());
         adicionarBotao(toolbar, "Parar", e -> pararAnimacao());
-        toolbar.add(new JLabel(" Velocidade: "));
+        JLabel velocidade = new JLabel("  Velocidade ");
+        velocidade.setForeground(UiTheme.TEXT_MUTED);
+        toolbar.add(velocidade);
         velocidadeAnimacao.setMaximumSize(new Dimension(65, 28));
         velocidadeAnimacao.setToolTipText("Velocidade média do veículo em km/h");
         toolbar.add(velocidadeAnimacao);
-        toolbar.add(new JLabel(" km/h "));
-        adicionarBotao(toolbar, "Centralizar mapa", e -> mapPanel.centralizarCruzDasAlmas());
-        adicionarBotao(toolbar, "Recarregar mapa", e -> mapPanel.recarregarMapa());
-
+        toolbar.add(new JLabel(" km/h"));
+        toolbar.add(Box.createHorizontalGlue());
+        adicionarBotao(toolbar, "Limpar rota", e -> limparRota());
+        adicionarBotao(toolbar, "Centralizar", e -> mapPanel.centralizarCruzDasAlmas());
+        adicionarBotao(toolbar, "Atualizar mapa", e -> mapPanel.recarregarMapa());
         return toolbar;
     }
 
+    private JToolBar novaToolbar() {
+        JToolBar toolbar = new JToolBar();
+        toolbar.setFloatable(false);
+        toolbar.setBorder(null);
+        return toolbar;
+    }
+
+    private void adicionarSecao(JToolBar toolbar, String texto) {
+        JLabel label = new JLabel(texto + "  ");
+        label.setFont(UiTheme.FONT_BOLD.deriveFont(10f));
+        label.setForeground(UiTheme.TEXT_MUTED);
+        toolbar.add(label);
+    }
+
     private void adicionarBotao(JToolBar toolbar, String texto, java.awt.event.ActionListener listener) {
-        JButton button = new JButton(texto);
+        adicionarBotao(toolbar, texto, new Color(234, 239, 245), UiTheme.TEXT, listener);
+    }
+
+    private void adicionarBotao(JToolBar toolbar, String texto, Color fundo, Color frente,
+                                 java.awt.event.ActionListener listener) {
+        JButton button = new RoundedButton(texto, fundo, frente);
         button.addActionListener(listener);
         toolbar.add(button);
+        toolbar.add(Box.createHorizontalStrut(4));
     }
 
     private void configurarMenu() {
@@ -206,6 +310,11 @@ public class MainWindow extends JFrame {
         visualizar.add(checkItem("Mostrar universidades", TipoPonto.UNIVERSIDADE));
         visualizar.add(checkItem("Mostrar pontos", TipoPonto.PONTO_EMBARQUE));
 
+        JMenu navegar = new JMenu("Telas");
+        navegar.add(item("Principal", e -> telas.setSelectedIndex(0)));
+        navegar.add(item("Mapa", e -> telas.setSelectedIndex(1)));
+        navegar.add(item("Rota", e -> telas.setSelectedIndex(2)));
+
         JMenu algoritmos = new JMenu("Algoritmos");
         algoritmos.add(item("Dijkstra", e -> executarDijkstra()));
         algoritmos.add(item("Prim", e -> executarPrim()));
@@ -221,6 +330,7 @@ public class MainWindow extends JFrame {
                 "Sobre", JOptionPane.INFORMATION_MESSAGE)));
 
         bar.add(arquivo);
+        bar.add(navegar);
         bar.add(visualizar);
         bar.add(algoritmos);
         bar.add(ajuda);
@@ -264,6 +374,7 @@ public class MainWindow extends JFrame {
             JOptionPane.showMessageDialog(this, "Calcule uma rota com pelo menos dois pontos antes de iniciar.");
             return;
         }
+        telas.setSelectedIndex(1);
         mapPanel.iniciarAnimacao(((Number) velocidadeAnimacao.getValue()).doubleValue());
     }
 
@@ -295,9 +406,12 @@ public class MainWindow extends JFrame {
             if (!rotaAtual.isTrajetoViario()) rotaAtual.atualizarGeometriaLocal();
             mapPanel.destacarRota(rotaAtual, corDaOperacao(ultimaOperacao));
             bottomRoutePanel.mostrar(rotaAtual);
+            statisticsPanel.atualizar(grafo, rotaAtual, algoritmoAtivo());
         } else {
             mapPanel.limparRota();
             bottomRoutePanel.limpar();
+            statisticsPanel.limpar();
+            statisticsPanel.atualizar(grafo, null, null);
         }
         statusLabel.setText("Pontos: " + grafo.getPontos().size() + " | Arestas: " + grafo.getArestas().size());
         if (ultimaOperacao == Operacao.NENHUMA) {
@@ -672,6 +786,7 @@ public class MainWindow extends JFrame {
                 mapPanel.destacarRota(rotaAtual, cor);
                 bottomRoutePanel.mostrar(rotaAtual);
                 atualizarTudo();
+                telas.setSelectedIndex(1);
                 setStatus(mensagem);
             }
         };

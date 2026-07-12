@@ -16,12 +16,17 @@ public class BottomRoutePanel extends JPanel {
 
     public BottomRoutePanel() {
         setLayout(new BorderLayout());
-        setBorder(BorderFactory.createTitledBorder("Rota calculada"));
+        UiTheme.card(this, "Resumo da rota");
         area.setEditable(false);
-        area.setFont(new Font("Monospaced", Font.PLAIN, 13));
+        area.setFont(new Font("Consolas", Font.PLAIN, 12));
+        area.setForeground(UiTheme.TEXT);
+        area.setBackground(new java.awt.Color(248, 250, 252));
+        area.setBorder(BorderFactory.createEmptyBorder(8, 10, 8, 10));
         area.setLineWrap(true);
         area.setWrapStyleWord(true);
-        add(new JScrollPane(area), BorderLayout.CENTER);
+        JScrollPane scroll = new JScrollPane(area);
+        scroll.setBorder(BorderFactory.createLineBorder(UiTheme.BORDER));
+        add(scroll, BorderLayout.CENTER);
     }
 
     public void mostrar(Rota rota) {

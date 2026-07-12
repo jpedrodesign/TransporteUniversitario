@@ -11,6 +11,7 @@ import javax.swing.event.TreeSelectionEvent;
 import javax.swing.tree.DefaultMutableTreeNode;
 import javax.swing.tree.DefaultTreeModel;
 import javax.swing.tree.TreePath;
+import javax.swing.tree.DefaultTreeCellRenderer;
 import java.awt.BorderLayout;
 import java.util.ArrayList;
 import java.util.Comparator;
@@ -27,10 +28,22 @@ public class NavigationTreePanel extends JPanel {
 
     public NavigationTreePanel() {
         setLayout(new BorderLayout());
-        setBorder(BorderFactory.createTitledBorder("Cadastro inicial"));
+        UiTheme.card(this, "Pontos cadastrados");
         tree = new JTree(new DefaultMutableTreeNode("Carregando..."));
+        tree.setBackground(UiTheme.SURFACE);
+        tree.setRowHeight(24);
+        tree.setRootVisible(false);
+        tree.setShowsRootHandles(true);
+        DefaultTreeCellRenderer renderer = new DefaultTreeCellRenderer();
+        renderer.setBackgroundNonSelectionColor(UiTheme.SURFACE);
+        renderer.setBackgroundSelectionColor(new java.awt.Color(218, 233, 248));
+        renderer.setTextSelectionColor(UiTheme.PRIMARY_DARK);
+        renderer.setTextNonSelectionColor(UiTheme.TEXT);
+        tree.setCellRenderer(renderer);
         tree.addTreeSelectionListener(this::selecionar);
-        add(new JScrollPane(tree), BorderLayout.CENTER);
+        JScrollPane scroll = new JScrollPane(tree);
+        scroll.setBorder(BorderFactory.createEmptyBorder());
+        add(scroll, BorderLayout.CENTER);
     }
 
     public void setOnSelecionado(Consumer<Ponto> onSelecionado) {

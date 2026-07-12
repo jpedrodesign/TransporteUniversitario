@@ -31,7 +31,7 @@ public class StatisticsPanel extends JPanel {
 
     public StatisticsPanel() {
         setLayout(new BoxLayout(this, BoxLayout.Y_AXIS));
-        setBorder(BorderFactory.createTitledBorder("Estatísticas"));
+        UiTheme.card(this, "Estatísticas");
 
         Font fonteTitulo = new Font("SansSerif", Font.BOLD, 14);
         Font fonteValor = new Font("SansSerif", Font.PLAIN, 13);
@@ -52,14 +52,17 @@ public class StatisticsPanel extends JPanel {
     private JLabel criarLinha(String rotulo, String valorInicial,
                                Font fonteRotulo, Font fonteValor) {
         JPanel linha = new JPanel(new BorderLayout());
+        linha.setBackground(UiTheme.SURFACE);
         linha.setMaximumSize(new Dimension(250, 25));
 
         JLabel lblRotulo = new JLabel(rotulo);
         lblRotulo.setFont(fonteRotulo);
+        lblRotulo.setForeground(UiTheme.TEXT_MUTED);
         linha.add(lblRotulo, BorderLayout.WEST);
 
         JLabel lblValor = new JLabel(valorInicial);
         lblValor.setFont(fonteValor);
+        lblValor.setForeground(UiTheme.TEXT);
         linha.add(lblValor, BorderLayout.EAST);
 
         add(linha);

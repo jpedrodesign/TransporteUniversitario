@@ -1,5 +1,11 @@
 # Sistema de Planejamento de Rotas — Cruz das Almas/BA
 
+Trabalho Final da Disciplina Estrutura de Dados
+
+Este projeto foi desenvolvido como Trabalho Final da disciplina Estrutura de Dados, tendo como objetivo aplicar, de forma prática, os principais conceitos estudados durante a disciplina por meio da implementação de uma aplicação desktop em Java.
+
+O sistema utiliza a teoria dos grafos para representar a malha viária da cidade de Cruz das Almas – BA, permitindo o cálculo, visualização e simulação de rotas em um mapa real. Durante o desenvolvimento foram aplicados diversos algoritmos clássicos de grafos, estruturas de dados e técnicas de programação orientada a objetos.
+
 Aplicação desktop desenvolvida em Java Swing para estudar grafos, calcular rotas e visualizar o deslocamento de um veículo em um mapa real de Cruz das Almas, Bahia.
 
 O projeto usa somente o JDK e bibliotecas JAR armazenadas localmente em `lib/`. Não utiliza Maven, Gradle, Node.js ou outro gerenciador de dependências.

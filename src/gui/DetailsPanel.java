@@ -9,6 +9,7 @@ import javax.swing.JLabel;
 import javax.swing.JPanel;
 import java.awt.Dimension;
 import java.awt.GridLayout;
+import java.awt.Color;
 import java.util.List;
 
 @SuppressWarnings({"serial", "this-escape"})
@@ -28,9 +29,10 @@ public class DetailsPanel extends JPanel {
 
     public DetailsPanel() {
         setLayout(new BoxLayout(this, BoxLayout.Y_AXIS));
-        setBorder(BorderFactory.createTitledBorder("Detalhes do ponto"));
+        UiTheme.card(this, "Detalhes do ponto");
 
         JPanel grid = new JPanel(new GridLayout(0, 2, 6, 6));
+        grid.setBackground(UiTheme.SURFACE);
         adicionarLinha(grid, "Nome", nome);
         adicionarLinha(grid, "Tipo", tipo);
         adicionarLinha(grid, "Latitude", latitude);
@@ -79,7 +81,11 @@ public class DetailsPanel extends JPanel {
     }
 
     private void adicionarLinha(JPanel grid, String rotulo, JLabel valor) {
-        grid.add(new JLabel(rotulo));
+        JLabel label = new JLabel(rotulo);
+        label.setForeground(UiTheme.TEXT_MUTED);
+        valor.setForeground(UiTheme.TEXT);
+        valor.setFont(UiTheme.FONT_BOLD);
+        grid.add(label);
         grid.add(valor);
     }
 }
