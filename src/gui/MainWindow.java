@@ -32,7 +32,6 @@ import javax.swing.JSpinner;
 import javax.swing.SpinnerNumberModel;
 import javax.swing.JSplitPane;
 import javax.swing.JTable;
-import javax.swing.JToolBar;
 import javax.swing.JTabbedPane;
 import javax.swing.SwingWorker;
 import javax.swing.filechooser.FileNameExtensionFilter;
@@ -43,6 +42,7 @@ import java.awt.Dimension;
 import java.awt.FlowLayout;
 import java.awt.GridBagConstraints;
 import java.awt.GridBagLayout;
+import java.awt.Container;
 import java.awt.Insets;
 import java.io.File;
 import java.io.IOException;
@@ -307,18 +307,16 @@ public class MainWindow extends JFrame {
         return container;
     }
 
-    private JToolBar criarAcoesDeCadastro() {
-        JToolBar toolbar = novaToolbar();
-        toolbar.setBackground(UiTheme.PRIMARY_DARK);
-        adicionarBotao(toolbar, "+ Novo ponto", UiTheme.ACCENT, Color.WHITE, e -> novoPonto());
-        adicionarBotao(toolbar, "Editar", new Color(54, 91, 128), Color.WHITE, e -> editarPontoSelecionado());
-        adicionarBotao(toolbar, "Excluir", UiTheme.DANGER, Color.WHITE, e -> removerPontoSelecionado());
-        return toolbar;
+    private JPanel criarAcoesDeCadastro() {
+        JPanel barra = novaBarraAcoes(UiTheme.PRIMARY_DARK);
+        adicionarBotao(barra, "+ Novo ponto", UiTheme.ACCENT, Color.WHITE, e -> novoPonto());
+        adicionarBotao(barra, "Editar", new Color(54, 91, 128), Color.WHITE, e -> editarPontoSelecionado());
+        adicionarBotao(barra, "Excluir", UiTheme.DANGER, Color.WHITE, e -> removerPontoSelecionado());
+        return barra;
     }
 
-    private JToolBar criarToolbar() {
-        JToolBar toolbar = novaToolbar();
-        toolbar.setBackground(UiTheme.SURFACE);
+    private JPanel criarToolbar() {
+        JPanel toolbar = novaBarraAcoes(UiTheme.SURFACE);
         toolbar.setBorder(BorderFactory.createCompoundBorder(
                 BorderFactory.createLineBorder(UiTheme.BORDER),
                 BorderFactory.createEmptyBorder(6, 8, 6, 8)));
@@ -331,7 +329,7 @@ public class MainWindow extends JFrame {
         adicionarBotao(toolbar, "DFS", e -> executarDFS());
         adicionarBotao(toolbar, "Guloso", e -> executarGuloso());
         adicionarBotao(toolbar, "TSP", e -> executarTSP());
-        toolbar.addSeparator();
+        toolbar.add(Box.createHorizontalStrut(8));
         adicionarSecao(toolbar, "SIMULAÇÃO");
         adicionarBotao(toolbar, "▶ Iniciar", UiTheme.ACCENT, Color.WHITE, e -> iniciarAnimacao());
         adicionarBotao(toolbar, "Pausar", e -> pausarAnimacao());
@@ -339,11 +337,11 @@ public class MainWindow extends JFrame {
         JLabel velocidade = new JLabel("  Velocidade ");
         velocidade.setForeground(UiTheme.TEXT_MUTED);
         toolbar.add(velocidade);
-        velocidadeAnimacao.setMaximumSize(new Dimension(65, 28));
+        velocidadeAnimacao.setMaximumSize(new Dimension(58, 26));
         velocidadeAnimacao.setToolTipText("Velocidade média do veículo em km/h");
         toolbar.add(velocidadeAnimacao);
         toolbar.add(new JLabel(" km/h"));
-        toolbar.add(Box.createHorizontalGlue());
+        toolbar.add(Box.createHorizontalStrut(8));
         adicionarBotao(toolbar, "Limpar rota", e -> limparRota());
         adicionarBotao(toolbar, "Centralizar", e -> mapPanel.centralizarCruzDasAlmas());
         adicionarBotao(toolbar, "Atualizar mapa", e -> mapPanel.recarregarMapa());
@@ -352,30 +350,30 @@ public class MainWindow extends JFrame {
         return toolbar;
     }
 
-    private JToolBar novaToolbar() {
-        JToolBar toolbar = new JToolBar();
-        toolbar.setFloatable(false);
-        toolbar.setBorder(null);
+    private JPanel novaBarraAcoes(Color fundo) {
+        JPanel toolbar = new JPanel(new FlowLayout(FlowLayout.LEFT, 4, 4));
+        toolbar.setOpaque(true);
+        toolbar.setBackground(fundo);
         return toolbar;
     }
 
-    private void adicionarSecao(JToolBar toolbar, String texto) {
+    private void adicionarSecao(Container toolbar, String texto) {
         JLabel label = new JLabel(texto + "  ");
-        label.setFont(UiTheme.FONT_BOLD.deriveFont(10f));
+        label.setFont(UiTheme.FONT_BOLD.deriveFont(9f));
         label.setForeground(UiTheme.TEXT_MUTED);
         toolbar.add(label);
     }
 
-    private void adicionarBotao(JToolBar toolbar, String texto, java.awt.event.ActionListener listener) {
+    private void adicionarBotao(Container toolbar, String texto, java.awt.event.ActionListener listener) {
         adicionarBotao(toolbar, texto, new Color(234, 239, 245), UiTheme.TEXT, listener);
     }
 
-    private void adicionarBotao(JToolBar toolbar, String texto, Color fundo, Color frente,
+    private void adicionarBotao(Container toolbar, String texto, Color fundo, Color frente,
                                  java.awt.event.ActionListener listener) {
         JButton button = new RoundedButton(texto, fundo, frente);
         button.addActionListener(listener);
         toolbar.add(button);
-        toolbar.add(Box.createHorizontalStrut(4));
+        toolbar.add(Box.createHorizontalStrut(2));
     }
 
     private void configurarMenu() {

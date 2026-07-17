@@ -1,6 +1,7 @@
 package gui;
 
 import javax.swing.JButton;
+import javax.swing.plaf.basic.BasicButtonUI;
 import java.awt.Color;
 import java.awt.Cursor;
 import java.awt.Graphics;
@@ -17,6 +18,8 @@ final class RoundedButton extends JButton {
     private final Color normal;
     private final Color hover;
     private final Color pressed;
+    private final Color borderNormal;
+    private final Color borderHover;
     private boolean mouseOver;
 
     RoundedButton(String text, Color background, Color foreground) {
@@ -24,12 +27,17 @@ final class RoundedButton extends JButton {
         normal = background;
         hover = clarear(background, 0.10f);
         pressed = escurecer(background, 0.12f);
-        setForeground(foreground);
-        setFont(UiTheme.FONT_BOLD);
-        setMargin(new Insets(7, 12, 7, 12));
+        borderNormal = UiTheme.bordaContraste(background);
+        borderHover = escurecer(borderNormal, 0.12f);
+        setForeground(foreground != null ? foreground : UiTheme.corContraste(background));
+        setFont(UiTheme.FONT_BOLD.deriveFont(12f));
+        setMargin(UiTheme.scaledInsets(5, 10, 5, 10));
         setBorderPainted(false);
         setContentAreaFilled(false);
-        setFocusPainted(false);
+        setFocusPainted(true);
+        setOpaque(false);
+        setRolloverEnabled(true);
+        setUI(new BasicButtonUI());
         setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
         addMouseListener(new MouseAdapter() {
             @Override public void mouseEntered(MouseEvent e) { mouseOver = true; repaint(); }
@@ -40,8 +48,27 @@ final class RoundedButton extends JButton {
     @Override protected void paintComponent(Graphics g) {
         Graphics2D g2 = (Graphics2D) g.create();
         g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
-        g2.setColor(getModel().isPressed() ? pressed : mouseOver ? hover : normal);
-        g2.fillRoundRect(0, 0, getWidth(), getHeight(), 12, 12);
+        g2.setRenderingHint(RenderingHints.KEY_TEXT_ANTIALIASING, RenderingHints.VALUE_TEXT_ANTIALIAS_ON);
+
+        Color fundo = getModel().isPressed() ? pressed : mouseOver ? hover : normal;
+        Color borda = getModel().isPressed() ? escurecer(borderNormal, 0.08f) : mouseOver ? borderHover : borderNormal;
+
+        g2.setColor(fundo);
+        int arc = UiTheme.scale(11);
+        g2.fillRoundRect(0, 0, getWidth() - 1, getHeight() - 1, arc, arc);
+
+        g2.setColor(borda);
+        g2.drawRoundRect(0, 0, getWidth() - 1, getHeight() - 1, arc, arc);
+
+        if (isFocusOwner()) {
+            Color foco = new Color(32, 120, 212, 170);
+            g2.setColor(foco);
+            g2.setStroke(new java.awt.BasicStroke(UiTheme.scale(2)));
+            g2.drawRoundRect(UiTheme.scale(1), UiTheme.scale(1),
+                    Math.max(0, getWidth() - UiTheme.scale(3)),
+                    Math.max(0, getHeight() - UiTheme.scale(3)),
+                    arc, arc);
+        }
         g2.dispose();
         super.paintComponent(g);
     }

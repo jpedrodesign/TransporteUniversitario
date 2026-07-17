@@ -139,8 +139,9 @@ public class MapPanel extends JPanel {
         JLabel titulo = new JLabel("Legenda");
         titulo.setFont(UiTheme.FONT_BOLD.deriveFont(12f));
         titulo.setForeground(new Color(40, 45, 52));
-        minimizarLegenda = new JButton("-");
-        minimizarLegenda.setMargin(new java.awt.Insets(0, 5, 0, 5));
+        minimizarLegenda = new RoundedButton("-", new Color(234, 239, 245), UiTheme.TEXT);
+        minimizarLegenda.setFont(UiTheme.FONT_BOLD.deriveFont(11f));
+        minimizarLegenda.setMargin(UiTheme.scaledInsets(0, 6, 0, 6));
         minimizarLegenda.setFocusable(false);
         minimizarLegenda.setToolTipText("Minimizar legenda");
         minimizarLegenda.addActionListener(e -> alternarLegenda());
@@ -189,12 +190,16 @@ public class MapPanel extends JPanel {
         JToggleButton item = new JToggleButton(texto, true);
         item.setIcon(new LegendaIcon(cor, letra));
         item.setHorizontalAlignment(JToggleButton.LEFT);
-        item.setFocusPainted(false);
-        item.setOpaque(false);
-        item.setContentAreaFilled(false);
+        item.setFocusPainted(true);
+        item.setOpaque(true);
+        item.setContentAreaFilled(true);
+        item.setBackground(UiTheme.SURFACE);
         item.setForeground(new Color(35, 42, 50));
-        item.setFont(UiTheme.FONT.deriveFont(10f));
-        item.setBorder(javax.swing.BorderFactory.createEmptyBorder(1, 0, 1, 0));
+        item.setFont(UiTheme.FONT_BOLD.deriveFont(10f));
+        item.setMargin(UiTheme.scaledInsets(2, 6, 2, 6));
+        item.setBorder(javax.swing.BorderFactory.createCompoundBorder(
+                javax.swing.BorderFactory.createLineBorder(UiTheme.BORDER),
+                javax.swing.BorderFactory.createEmptyBorder(2, 4, 2, 4)));
         item.setAlignmentX(Component.LEFT_ALIGNMENT);
         item.setToolTipText("Mostrar ou ocultar " + texto.toLowerCase());
         item.addActionListener(e -> {
@@ -203,6 +208,7 @@ public class MapPanel extends JPanel {
                 onTipoLegendaAlternado.accept(tipo);
             }
         });
+        atualizarVisualBotaoLegenda(item, cor);
         botoesLegenda.put(tipo, item);
         legenda.add(item);
     }
@@ -219,10 +225,12 @@ public class MapPanel extends JPanel {
     private void atualizarVisualBotaoLegenda(JToggleButton item, Color corAtiva) {
         if (item.isSelected()) {
             item.setIcon(new LegendaIcon(corAtiva, textoDoTipoLegenda(item.getText())));
-            item.setForeground(new Color(35, 42, 50));
+            item.setForeground(new Color(28, 35, 43));
+            item.setBackground(new Color(237, 244, 252));
         } else {
             item.setIcon(new LegendaIcon(new Color(200, 205, 211), textoDoTipoLegenda(item.getText())));
             item.setForeground(new Color(90, 98, 108));
+            item.setBackground(UiTheme.SURFACE);
         }
     }
 

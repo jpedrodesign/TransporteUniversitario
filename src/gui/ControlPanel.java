@@ -3,6 +3,7 @@ package gui;
 import java.awt.Component;
 import java.awt.Dimension;
 import java.awt.Font;
+import java.awt.Color;
 import java.awt.event.ActionListener;
 
 import javax.swing.BorderFactory;
@@ -38,20 +39,21 @@ public class ControlPanel extends JPanel {
     public ControlPanel() {
         setLayout(new BoxLayout(this, BoxLayout.Y_AXIS));
         setBorder(BorderFactory.createEmptyBorder(10, 10, 10, 10));
+        setBackground(UiTheme.BACKGROUND);
 
-        Font fonteBotao = new Font("SansSerif", Font.PLAIN, 13);
-        Dimension tamanhoBotao = new Dimension(200, 38);
+        Font fonteBotao = UiTheme.FONT_BOLD.deriveFont(12f);
+        Dimension tamanhoBotao = UiTheme.scaledSize(188, 34);
 
         // Título
         JLabel titulo = new JLabel("CONTROLES");
-        titulo.setFont(new Font("SansSerif", Font.BOLD, 16));
+        titulo.setFont(UiTheme.FONT_BOLD.deriveFont(16f));
         titulo.setAlignmentX(Component.CENTER_ALIGNMENT);
         add(titulo);
         add(Box.createVerticalStrut(15));
 
         // --- Gerenciamento de Pontos ---
         JLabel lblPontos = new JLabel("Gerenciar Pontos");
-        lblPontos.setFont(new Font("SansSerif", Font.BOLD, 12));
+        lblPontos.setFont(UiTheme.FONT_BOLD.deriveFont(12f));
         lblPontos.setAlignmentX(Component.CENTER_ALIGNMENT);
         add(lblPontos);
         add(Box.createVerticalStrut(5));
@@ -69,7 +71,7 @@ public class ControlPanel extends JPanel {
 
         // --- Algoritmos ---
         JLabel lblAlgoritmos = new JLabel("Algoritmos");
-        lblAlgoritmos.setFont(new Font("SansSerif", Font.BOLD, 12));
+        lblAlgoritmos.setFont(UiTheme.FONT_BOLD.deriveFont(12f));
         lblAlgoritmos.setAlignmentX(Component.CENTER_ALIGNMENT);
         add(lblAlgoritmos);
         add(Box.createVerticalStrut(5));
@@ -99,7 +101,7 @@ public class ControlPanel extends JPanel {
 
         // --- Ações ---
         JLabel lblAcoes = new JLabel("Ações");
-        lblAcoes.setFont(new Font("SansSerif", Font.BOLD, 12));
+        lblAcoes.setFont(UiTheme.FONT_BOLD.deriveFont(12f));
         lblAcoes.setAlignmentX(Component.CENTER_ALIGNMENT);
         add(lblAcoes);
         add(Box.createVerticalStrut(5));
@@ -121,7 +123,7 @@ public class ControlPanel extends JPanel {
         // Barra de progresso
         progressBar = new JProgressBar();
         progressBar.setStringPainted(true);
-        progressBar.setMaximumSize(new Dimension(200, 25));
+        progressBar.setMaximumSize(UiTheme.scaledSize(188, 22));
         progressBar.setAlignmentX(Component.CENTER_ALIGNMENT);
         add(progressBar);
 
@@ -129,12 +131,12 @@ public class ControlPanel extends JPanel {
     }
 
     private JButton criarBotao(String texto, Dimension tamanho, Font fonte) {
-        JButton btn = new JButton(texto);
-        btn.setMaximumSize(tamanho);
+        JButton btn = new RoundedButton(texto, new Color(234, 239, 245), UiTheme.TEXT);
+        btn.setMaximumSize(new Dimension(Integer.MAX_VALUE, tamanho.height));
         btn.setPreferredSize(tamanho);
+        btn.setMinimumSize(new Dimension(tamanho.width, tamanho.height));
         btn.setFont(fonte);
         btn.setAlignmentX(Component.CENTER_ALIGNMENT);
-        btn.setFocusPainted(false);
         return btn;
     }
 
