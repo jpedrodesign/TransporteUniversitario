@@ -29,7 +29,6 @@ public class ProjetoService {
                         String.valueOf(ponto.getLatitude()),
                         String.valueOf(ponto.getLongitude()),
                         String.valueOf(ponto.getQuantidadeAlunos()),
-                        String.valueOf(ponto.getQuantidadeDesembarque()),
                         String.valueOf(ponto.getCapacidade()),
                         String.valueOf(ponto.getPrioridade()),
                         escape(ponto.getTurno()),

@@ -42,7 +42,7 @@ public class StatisticsPanel extends JPanel {
         add(Box.createVerticalStrut(5));
 
         lblNumeroPontos = criarLinha("Nº de Pontos:", "0", fonteTitulo, fonteValor);
-        lblTotalAlunos = criarLinha("Embarques:", "0", fonteTitulo, fonteValor);
+        lblTotalAlunos = criarLinha("Estudantes:", "0", fonteTitulo, fonteValor);
         lblDistanciaTotal = criarLinha("Distância:", "0.00 km", fonteTitulo, fonteValor);
         lblTempoTotal = criarLinha("Tempo:", "0 min", fonteTitulo, fonteValor);
         lblNumeroParadas = criarLinha("Paradas:", "0", fonteTitulo, fonteValor);

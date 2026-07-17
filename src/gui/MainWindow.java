@@ -674,11 +674,9 @@ public class MainWindow extends JFrame {
             return;
         }
         try {
-            int embarque = valorEmbarquePermitido(result.tipo, result.alunos);
-            int desembarque = valorDesembarquePermitido(result.tipo, result.desembarque);
             Ponto novo = simulationService.adicionarPonto(result.nome, result.bairro, result.latitude, result.longitude,
-                    embarque, result.capacidade, result.prioridade, result.turno, result.tipo);
-            novo.setQuantidadeDesembarque(desembarque);
+                    result.alunos, result.capacidade, result.prioridade, result.turno, result.tipo);
+            novo.setQuantidadeDesembarque(0);
             pontoSelecionado = novo;
             mapPanel.selecionarPonto(novo);
             mostrarDetalhes(novo);
@@ -698,14 +696,12 @@ public class MainWindow extends JFrame {
             return;
         }
         try {
-            int embarque = valorEmbarquePermitido(result.tipo, result.alunos);
-            int desembarque = valorDesembarquePermitido(result.tipo, result.desembarque);
             selecionado.setNome(result.nome);
             selecionado.setBairro(result.bairro);
             selecionado.setLatitude(result.latitude);
             selecionado.setLongitude(result.longitude);
-            selecionado.setQuantidadeAlunos(embarque);
-            selecionado.setQuantidadeDesembarque(desembarque);
+            selecionado.setQuantidadeAlunos(result.alunos);
+            selecionado.setQuantidadeDesembarque(0);
             selecionado.setCapacidade(result.capacidade);
             selecionado.setPrioridade(result.prioridade);
             selecionado.setTurno(result.turno);
@@ -717,14 +713,6 @@ public class MainWindow extends JFrame {
         } catch (IllegalArgumentException ex) {
             erro("Erro ao editar ponto", ex);
         }
-    }
-
-    private int valorEmbarquePermitido(TipoPonto tipo, int valor) {
-        return DadosIniciaisService.isTipoEmbarque(tipo) ? valor : 0;
-    }
-
-    private int valorDesembarquePermitido(TipoPonto tipo, int valor) {
-        return DadosIniciaisService.isTipoDesembarque(tipo) ? valor : 0;
     }
 
     private void atualizarRotaViariaEmSegundoPlano() {
@@ -955,7 +943,6 @@ public class MainWindow extends JFrame {
         javax.swing.JTextField latitude = new javax.swing.JTextField(ponto != null ? String.valueOf(ponto.getLatitude()) : "-12.6700");
         javax.swing.JTextField longitude = new javax.swing.JTextField(ponto != null ? String.valueOf(ponto.getLongitude()) : "-39.1000");
         javax.swing.JTextField alunos = new javax.swing.JTextField(ponto != null ? String.valueOf(ponto.getQuantidadeAlunos()) : "0");
-        javax.swing.JTextField desembarque = new javax.swing.JTextField(ponto != null ? String.valueOf(ponto.getQuantidadeDesembarque()) : "0");
         javax.swing.JTextField capacidade = new javax.swing.JTextField(ponto != null ? String.valueOf(ponto.getCapacidade()) : "0");
         javax.swing.JTextField prioridade = new javax.swing.JTextField(ponto != null ? String.valueOf(ponto.getPrioridade()) : "1");
         javax.swing.JTextField turno = new javax.swing.JTextField(ponto != null ? ponto.getTurno() : "");
@@ -967,8 +954,7 @@ public class MainWindow extends JFrame {
         adicionarCampo(painel, c, row++, "Bairro", bairro);
         adicionarCampo(painel, c, row++, "Latitude", latitude);
         adicionarCampo(painel, c, row++, "Longitude", longitude);
-        adicionarCampo(painel, c, row++, "Alunos embarque", alunos);
-        adicionarCampo(painel, c, row++, "Alunos desembarque", desembarque);
+        adicionarCampo(painel, c, row++, "Alunos", alunos);
         adicionarCampo(painel, c, row++, "Capacidade", capacidade);
         adicionarCampo(painel, c, row++, "Prioridade", prioridade);
         adicionarCampo(painel, c, row++, "Turno", turno);
@@ -987,7 +973,6 @@ public class MainWindow extends JFrame {
                     Double.parseDouble(latitude.getText().trim()),
                     Double.parseDouble(longitude.getText().trim()),
                     Integer.parseInt(alunos.getText().trim()),
-                    Integer.parseInt(desembarque.getText().trim()),
                     Integer.parseInt(capacidade.getText().trim()),
                     Integer.parseInt(prioridade.getText().trim()),
                     turno.getText().trim(),
@@ -1322,20 +1307,18 @@ public class MainWindow extends JFrame {
         final double latitude;
         final double longitude;
         final int alunos;
-        final int desembarque;
         final int capacidade;
         final int prioridade;
         final String turno;
         final TipoPonto tipo;
 
         private PontoEditResult(String nome, String bairro, double latitude, double longitude, int alunos,
-                                int desembarque, int capacidade, int prioridade, String turno, TipoPonto tipo) {
+                                int capacidade, int prioridade, String turno, TipoPonto tipo) {
             this.nome = nome;
             this.bairro = bairro;
             this.latitude = latitude;
             this.longitude = longitude;
             this.alunos = alunos;
-            this.desembarque = desembarque;
             this.capacidade = capacidade;
             this.prioridade = prioridade;
             this.turno = turno;

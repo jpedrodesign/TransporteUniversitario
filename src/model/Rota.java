@@ -137,17 +137,6 @@ public final class Rota {
         return total;
     }
 
-    public int calcularTotalDesembarque() {
-        int total = 0;
-        Set<Ponto> contabilizados = new HashSet<>();
-        for (Ponto ponto : percurso) {
-            if (contabilizados.add(ponto)) {
-                total += ponto.getQuantidadeDesembarque();
-            }
-        }
-        return total;
-    }
-
     public String formatarResumo() {
         StringBuilder sb = new StringBuilder();
         sb.append("ROTA CALCULADA").append('\n');
@@ -161,8 +150,7 @@ public final class Rota {
         sb.append("Distancia total: ").append(String.format("%.2f km", distanciaTotal)).append('\n');
         sb.append("Tempo estimado: ").append(String.format("%.0f min", tempoTotal)).append('\n');
         sb.append("Numero de paradas: ").append(getNumeroParadas()).append('\n');
-        sb.append("Alunos embarcados: ").append(calcularTotalAlunos()).append('\n');
-        sb.append("Alunos desembarcados: ").append(calcularTotalDesembarque()).append('\n');
+        sb.append("Quantidade de alunos: ").append(calcularTotalAlunos()).append('\n');
         sb.append("Peso total: ").append(String.format("%.2f", pesoTotal)).append('\n');
         sb.append("Custo total: ").append(String.format("R$ %.2f", custoTotal)).append('\n');
         sb.append("Geometria: ").append(trajetoViario ? "OSRM/OpenStreetMap (vias reais)" : "aproximação local").append('\n');
@@ -183,8 +171,7 @@ public final class Rota {
                     .append(ponto.getTipo().getRotulo()).append(" - ")
                     .append(ponto.getBairro());
             if (primeiraPassagem) {
-                sb.append(" | embarque: ").append(ponto.getQuantidadeAlunos())
-                        .append(" | desembarque: ").append(ponto.getQuantidadeDesembarque());
+                sb.append(" | alunos: ").append(ponto.getQuantidadeAlunos());
             } else {
                 sb.append(" | retorno: alunos ja atendidos");
             }

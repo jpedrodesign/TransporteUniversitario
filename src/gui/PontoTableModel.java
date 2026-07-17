@@ -12,7 +12,7 @@ import java.util.*;
 public class PontoTableModel extends AbstractTableModel {
 
     private final List<Ponto> pontos = new ArrayList<>();
-    private final String[] colunas = {"Nome", "Tipo", "Embarque", "Desembarque", "Latitude", "Longitude"};
+    private final String[] colunas = {"Nome", "Tipo", "Alunos", "Latitude", "Longitude"};
 
     public void setPontos(Collection<Ponto> novosPontos) {
         pontos.clear();
@@ -66,10 +66,8 @@ public class PontoTableModel extends AbstractTableModel {
             case 2:
                 return p.getQuantidadeAlunos();
             case 3:
-                return p.getQuantidadeDesembarque();
-            case 4:
                 return String.format("%.6f", p.getLatitude());
-            case 5:
+            case 4:
                 return String.format("%.6f", p.getLongitude());
             default:
                 return "";
@@ -78,19 +76,15 @@ public class PontoTableModel extends AbstractTableModel {
 
     @Override
     public boolean isCellEditable(int row, int col) {
-        return col == 2 || col == 3;
+        return col == 2;
     }
 
     @Override
     public void setValueAt(Object valor, int row, int col) {
-        if ((col == 2 || col == 3) && valor != null) {
+        if (col == 2 && valor != null) {
             try {
                 int alunos = Integer.parseInt(valor.toString());
-                if (col == 2) {
-                    pontos.get(row).setQuantidadeAlunos(alunos);
-                } else {
-                    pontos.get(row).setQuantidadeDesembarque(alunos);
-                }
+                pontos.get(row).setQuantidadeAlunos(alunos);
                 fireTableCellUpdated(row, col);
             } catch (NumberFormatException ignored) {}
         }
