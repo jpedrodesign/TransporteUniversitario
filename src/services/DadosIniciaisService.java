@@ -20,6 +20,7 @@ import java.util.Map;
 public final class DadosIniciaisService {
 
     private static final String ARQUIVO_VERTICES = "dados/vertices.csv";
+    private static final int TOTAL_ALUNOS_PADRAO = 1500;
 
     private DadosIniciaisService() {
     }
@@ -38,7 +39,63 @@ public final class DadosIniciaisService {
                 }
             }
         }
+        aplicarDistribuicaoAlunosPadrao(pontos);
         return pontos;
+    }
+
+    private static void aplicarDistribuicaoAlunosPadrao(List<Ponto> pontos) {
+        distribuir(pontos, true, TOTAL_ALUNOS_PADRAO);
+        distribuir(pontos, false, TOTAL_ALUNOS_PADRAO);
+    }
+
+    private static void distribuir(List<Ponto> pontos, boolean embarque, int total) {
+        List<Ponto> elegiveis = new ArrayList<>();
+        int somaPesos = 0;
+        for (Ponto ponto : pontos) {
+            boolean tipoValido = embarque ? isTipoEmbarque(ponto.getTipo()) : isTipoDesembarque(ponto.getTipo());
+            if (!tipoValido) {
+                if (embarque) {
+                    ponto.setQuantidadeAlunos(0);
+                } else {
+                    ponto.setQuantidadeDesembarque(0);
+                }
+                continue;
+            }
+            elegiveis.add(ponto);
+            somaPesos += pesoDistribuicao(ponto, embarque);
+        }
+
+        int restante = total;
+        for (int i = 0; i < elegiveis.size(); i++) {
+            Ponto ponto = elegiveis.get(i);
+            int valor;
+            if (i == elegiveis.size() - 1) {
+                valor = restante;
+            } else {
+                int peso = pesoDistribuicao(ponto, embarque);
+                valor = Math.max(0, (int) Math.round((peso * (double) total) / Math.max(1, somaPesos)));
+                valor = Math.min(valor, restante);
+            }
+            if (embarque) {
+                ponto.setQuantidadeAlunos(valor);
+                ponto.setQuantidadeDesembarque(0);
+            } else {
+                ponto.setQuantidadeDesembarque(valor);
+            }
+            restante -= valor;
+        }
+    }
+
+    private static int pesoDistribuicao(Ponto ponto, boolean embarque) {
+        return Math.max(1, embarque ? ponto.getQuantidadeAlunos() : ponto.getCapacidade());
+    }
+
+    public static boolean isTipoEmbarque(TipoPonto tipo) {
+        return tipo == TipoPonto.BAIRRO || tipo == TipoPonto.PONTO_EMBARQUE;
+    }
+
+    public static boolean isTipoDesembarque(TipoPonto tipo) {
+        return tipo == TipoPonto.ESCOLA || tipo == TipoPonto.UNIVERSIDADE;
     }
 
     private static List<Ponto> criarPontosHardcoded() {

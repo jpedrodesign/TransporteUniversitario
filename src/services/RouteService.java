@@ -12,6 +12,7 @@ import model.Aresta;
 import model.Grafo;
 import model.Ponto;
 import model.Rota;
+import util.GeoUtils;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -61,6 +62,15 @@ public class RouteService {
         return arestasAtual;
     }
 
+    public List<Aresta> executarPrim(Ponto inicio, List<Ponto> pontosEscolhidos) {
+        Grafo base = grafoSelecionado(pontosEscolhidos);
+        arestasAtual = prim.executar(base, inicio);
+        algoritmoAtual = "Prim";
+        rotaAtual = criarRotaDeArestas(arestasAtual, inicio, "Prim");
+        enriquecerComRuas(rotaAtual);
+        return arestasAtual;
+    }
+
     public List<Aresta> executarKruskal() {
         arestasAtual = kruskal.executar(grafo);
         algoritmoAtual = "Kruskal";
@@ -69,8 +79,26 @@ public class RouteService {
         return arestasAtual;
     }
 
+    public List<Aresta> executarKruskal(List<Ponto> pontosEscolhidos) {
+        Grafo base = grafoSelecionado(pontosEscolhidos);
+        arestasAtual = kruskal.executar(base, pontosEscolhidos);
+        algoritmoAtual = "Kruskal";
+        Ponto origem = pontosEscolhidos != null && !pontosEscolhidos.isEmpty() ? pontosEscolhidos.get(0) : null;
+        rotaAtual = criarRotaDeArestas(arestasAtual, origem, "Kruskal");
+        enriquecerComRuas(rotaAtual);
+        return arestasAtual;
+    }
+
     public Rota executarGuloso(Ponto origem) {
         rotaAtual = normalizarPercurso(guloso.executar(grafo, origem));
+        arestasAtual = construirArestas(rotaAtual.getPercurso());
+        algoritmoAtual = "Guloso";
+        enriquecerComRuas(rotaAtual);
+        return rotaAtual;
+    }
+
+    public Rota executarGuloso(Ponto origem, List<Ponto> pontosEscolhidos) {
+        rotaAtual = normalizarPercurso(guloso.executar(grafoSelecionado(pontosEscolhidos), origem));
         arestasAtual = construirArestas(rotaAtual.getPercurso());
         algoritmoAtual = "Guloso";
         enriquecerComRuas(rotaAtual);
@@ -85,6 +113,14 @@ public class RouteService {
         return rotaAtual;
     }
 
+    public Rota executarTSP(Ponto origem, List<Ponto> pontosEscolhidos) {
+        rotaAtual = normalizarPercurso(tsp.otimizarRota(grafoSelecionado(pontosEscolhidos), origem));
+        arestasAtual = construirArestas(rotaAtual.getPercurso());
+        algoritmoAtual = "Caixeiro Viajante";
+        enriquecerComRuas(rotaAtual);
+        return rotaAtual;
+    }
+
     public Rota executarBFS(Ponto origem) {
         rotaAtual = normalizarPercurso(bfs.executar(grafo, origem));
         arestasAtual = construirArestas(rotaAtual.getPercurso());
@@ -93,8 +129,24 @@ public class RouteService {
         return rotaAtual;
     }
 
+    public Rota executarBFS(Ponto origem, List<Ponto> pontosEscolhidos) {
+        rotaAtual = normalizarPercurso(bfs.executar(grafoSelecionado(pontosEscolhidos), origem));
+        arestasAtual = construirArestas(rotaAtual.getPercurso());
+        algoritmoAtual = "BFS";
+        enriquecerComRuas(rotaAtual);
+        return rotaAtual;
+    }
+
     public Rota executarDFS(Ponto origem) {
         rotaAtual = normalizarPercurso(dfs.executar(grafo, origem));
+        arestasAtual = construirArestas(rotaAtual.getPercurso());
+        algoritmoAtual = "DFS";
+        enriquecerComRuas(rotaAtual);
+        return rotaAtual;
+    }
+
+    public Rota executarDFS(Ponto origem, List<Ponto> pontosEscolhidos) {
+        rotaAtual = normalizarPercurso(dfs.executar(grafoSelecionado(pontosEscolhidos), origem));
         arestasAtual = construirArestas(rotaAtual.getPercurso());
         algoritmoAtual = "DFS";
         enriquecerComRuas(rotaAtual);
@@ -135,6 +187,36 @@ public class RouteService {
             }
         }
         return arestas;
+    }
+
+    private Grafo grafoSelecionado(List<Ponto> pontosEscolhidos) {
+        if (pontosEscolhidos == null || pontosEscolhidos.isEmpty()
+                || pontosEscolhidos.size() == grafo.getPontos().size()) {
+            return grafo;
+        }
+
+        Grafo selecionado = new Grafo();
+        List<Ponto> pontos = new ArrayList<>();
+        for (Ponto ponto : pontosEscolhidos) {
+            if (ponto != null && grafo.getPontos().contains(ponto) && !pontos.contains(ponto)) {
+                pontos.add(ponto);
+                selecionado.adicionarPonto(ponto);
+            }
+        }
+
+        for (int i = 0; i < pontos.size(); i++) {
+            for (int j = i + 1; j < pontos.size(); j++) {
+                Ponto origem = pontos.get(i);
+                Ponto destino = pontos.get(j);
+                List<Ponto> caminho = Dijkstra.encontrarCaminho(grafo, origem, destino);
+                double distancia = caminho.isEmpty()
+                        ? GeoUtils.haversine(origem.getLatitude(), origem.getLongitude(),
+                                destino.getLatitude(), destino.getLongitude())
+                        : AlgoritmoUtils.calcularDistancia(grafo, caminho);
+                selecionado.adicionarAresta(origem, destino, distancia);
+            }
+        }
+        return selecionado;
     }
 
     /** Expande mudanças entre vértices não adjacentes para caminhos reais do grafo. */

@@ -42,7 +42,7 @@ public class StatisticsPanel extends JPanel {
         add(Box.createVerticalStrut(5));
 
         lblNumeroPontos = criarLinha("Nº de Pontos:", "0", fonteTitulo, fonteValor);
-        lblTotalAlunos = criarLinha("Estudantes:", "0", fonteTitulo, fonteValor);
+        lblTotalAlunos = criarLinha("Embarques:", "0", fonteTitulo, fonteValor);
         lblDistanciaTotal = criarLinha("Distância:", "0.00 km", fonteTitulo, fonteValor);
         lblTempoTotal = criarLinha("Tempo:", "0 min", fonteTitulo, fonteValor);
         lblNumeroParadas = criarLinha("Paradas:", "0", fonteTitulo, fonteValor);
@@ -78,6 +78,7 @@ public class StatisticsPanel extends JPanel {
         }
 
         if (rota != null) {
+            lblTotalAlunos.setText(String.valueOf(rota.calcularTotalAlunos()));
             lblDistanciaTotal.setText(String.format("%.2f km", rota.getDistanciaTotal()));
             lblTempoTotal.setText(String.format("%.0f min", rota.getTempoTotal()));
             lblNumeroParadas.setText(String.valueOf(rota.getPercurso().size()));

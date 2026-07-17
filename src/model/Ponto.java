@@ -14,6 +14,7 @@ public class Ponto {
     private double latitude;
     private double longitude;
     private int quantidadeAlunos;
+    private int quantidadeDesembarque;
     private int capacidade;
     private int prioridade;
     private String turno;
@@ -42,6 +43,7 @@ public class Ponto {
         this.latitude = latitude;
         this.longitude = longitude;
         this.quantidadeAlunos = quantidadeAlunos;
+        this.quantidadeDesembarque = 0;
         this.capacidade = Math.max(capacidade, 0);
         this.prioridade = Math.max(prioridade, 0);
         this.turno = turno != null ? turno.trim() : "";
@@ -113,6 +115,17 @@ public class Ponto {
             throw new IllegalArgumentException("Quantidade invalida.");
         }
         this.quantidadeAlunos = quantidadeAlunos;
+    }
+
+    public int getQuantidadeDesembarque() {
+        return quantidadeDesembarque;
+    }
+
+    public void setQuantidadeDesembarque(int quantidadeDesembarque) {
+        if (quantidadeDesembarque < 0) {
+            throw new IllegalArgumentException("Quantidade de desembarque invalida.");
+        }
+        this.quantidadeDesembarque = quantidadeDesembarque;
     }
 
     public int getCapacidade() {

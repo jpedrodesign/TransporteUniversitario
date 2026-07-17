@@ -2,7 +2,9 @@ package model;
 
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 import org.jxmapviewer.viewer.GeoPosition;
 import util.RouteGeometry;
 
@@ -126,8 +128,22 @@ public final class Rota {
 
     public int calcularTotalAlunos() {
         int total = 0;
+        Set<Ponto> contabilizados = new HashSet<>();
         for (Ponto ponto : percurso) {
-            total += ponto.getQuantidadeAlunos();
+            if (contabilizados.add(ponto)) {
+                total += ponto.getQuantidadeAlunos();
+            }
+        }
+        return total;
+    }
+
+    public int calcularTotalDesembarque() {
+        int total = 0;
+        Set<Ponto> contabilizados = new HashSet<>();
+        for (Ponto ponto : percurso) {
+            if (contabilizados.add(ponto)) {
+                total += ponto.getQuantidadeDesembarque();
+            }
         }
         return total;
     }
@@ -145,7 +161,8 @@ public final class Rota {
         sb.append("Distancia total: ").append(String.format("%.2f km", distanciaTotal)).append('\n');
         sb.append("Tempo estimado: ").append(String.format("%.0f min", tempoTotal)).append('\n');
         sb.append("Numero de paradas: ").append(getNumeroParadas()).append('\n');
-        sb.append("Quantidade de alunos: ").append(calcularTotalAlunos()).append('\n');
+        sb.append("Alunos embarcados: ").append(calcularTotalAlunos()).append('\n');
+        sb.append("Alunos desembarcados: ").append(calcularTotalDesembarque()).append('\n');
         sb.append("Peso total: ").append(String.format("%.2f", pesoTotal)).append('\n');
         sb.append("Custo total: ").append(String.format("R$ %.2f", custoTotal)).append('\n');
         sb.append("Geometria: ").append(trajetoViario ? "OSRM/OpenStreetMap (vias reais)" : "aproximação local").append('\n');
@@ -159,10 +176,19 @@ public final class Rota {
         }
         sb.append('\n');
         int ordem = 1;
+        Set<Ponto> atendidos = new HashSet<>();
         for (Ponto ponto : percurso) {
+            boolean primeiraPassagem = atendidos.add(ponto);
             sb.append(ordem++).append(". ").append(ponto.getNome()).append(" - ")
                     .append(ponto.getTipo().getRotulo()).append(" - ")
-                    .append(ponto.getBairro()).append('\n');
+                    .append(ponto.getBairro());
+            if (primeiraPassagem) {
+                sb.append(" | embarque: ").append(ponto.getQuantidadeAlunos())
+                        .append(" | desembarque: ").append(ponto.getQuantidadeDesembarque());
+            } else {
+                sb.append(" | retorno: alunos ja atendidos");
+            }
+            sb.append('\n');
         }
         return sb.toString();
     }

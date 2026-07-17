@@ -7,6 +7,7 @@ import model.TipoPonto;
 import services.ProjetoService;
 import services.RouteService;
 import services.SimulationService;
+import services.DadosIniciaisService;
 import util.CSVExporter;
 import util.PDFExporter;
 import util.TXTExporter;
@@ -19,6 +20,7 @@ import javax.swing.JCheckBoxMenuItem;
 import javax.swing.JFileChooser;
 import javax.swing.JFrame;
 import javax.swing.JLabel;
+import javax.swing.JLayeredPane;
 import javax.swing.JMenu;
 import javax.swing.JMenuBar;
 import javax.swing.JMenuItem;
@@ -29,6 +31,7 @@ import javax.swing.JScrollPane;
 import javax.swing.JSpinner;
 import javax.swing.SpinnerNumberModel;
 import javax.swing.JSplitPane;
+import javax.swing.JTable;
 import javax.swing.JToolBar;
 import javax.swing.JTabbedPane;
 import javax.swing.SwingWorker;
@@ -76,6 +79,13 @@ public class MainWindow extends JFrame {
     private final JLabel statusLabel = new JLabel("Pronto");
     private final JProgressBar progressBar = new JProgressBar();
     private final JSpinner velocidadeAnimacao = new JSpinner(new SpinnerNumberModel(40, 5, 120, 5));
+    private final JPanel painelResumoConteudo = new JPanel(new BorderLayout(8, 8));
+    private final JLabel lblMapaDistancia = new JLabel("Distância percorrida: 0.00 km");
+    private final JLabel lblMapaAlunos = new JLabel("Alunos: 0");
+    private JButton btnAlternarResumo;
+    private JPanel painelResumoCompacto;
+    private JPanel painelResumoLateral;
+    private boolean resumoExpandido = false;
 
     private final EnumMap<TipoPonto, Boolean> tiposVisiveis = new EnumMap<>(TipoPonto.class);
 
@@ -124,12 +134,8 @@ public class MainWindow extends JFrame {
         telas.setBackground(UiTheme.SURFACE);
         telas.setForeground(UiTheme.TEXT);
         telas.setBorder(BorderFactory.createEmptyBorder());
-        telas.addTab("  Principal  ", criarTelaPrincipal());
         telas.addTab("  Mapa  ", criarTelaMapa());
-        telas.addTab("  Rota  ", criarTelaRota());
-        telas.setToolTipTextAt(0, "Visão geral dos pontos e indicadores");
-        telas.setToolTipTextAt(1, "Mapa, percurso e animação do veículo");
-        telas.setToolTipTextAt(2, "Resumo completo e distâncias da rota");
+        telas.setToolTipTextAt(0, "Mapa, estatísticas, percurso e animação do veículo");
         return telas;
     }
 
@@ -156,8 +162,91 @@ public class MainWindow extends JFrame {
         JPanel tela = new JPanel(new BorderLayout());
         tela.setBackground(UiTheme.BACKGROUND);
         tela.setBorder(BorderFactory.createEmptyBorder(8, 0, 0, 0));
-        tela.add(mapPanel, BorderLayout.CENTER);
+
+        painelResumoCompacto = criarResumoCompactoMapa();
+        JLayeredPane mapaComResumo = new JLayeredPane() {
+            @Override
+            public void doLayout() {
+                Dimension size = getSize();
+                mapPanel.setBounds(0, 0, size.width, size.height);
+                Dimension pref = painelResumoCompacto.getPreferredSize();
+                int x = Math.max(12, size.width - pref.width - 12);
+                painelResumoCompacto.setBounds(x, 12, pref.width, pref.height);
+            }
+        };
+        mapaComResumo.add(mapPanel, JLayeredPane.DEFAULT_LAYER);
+        mapaComResumo.add(painelResumoCompacto, JLayeredPane.PALETTE_LAYER);
+
+        painelResumoLateral = criarResumoLateralMapa();
+        painelResumoLateral.setVisible(false);
+
+        tela.add(mapaComResumo, BorderLayout.CENTER);
+        tela.add(painelResumoLateral, BorderLayout.EAST);
         return tela;
+    }
+
+    private JPanel criarResumoCompactoMapa() {
+        JPanel painel = new JPanel(new BorderLayout(10, 0));
+        painel.setBackground(UiTheme.SURFACE);
+        painel.setBorder(BorderFactory.createCompoundBorder(
+                BorderFactory.createLineBorder(UiTheme.BORDER),
+                BorderFactory.createEmptyBorder(8, 10, 8, 10)));
+
+        JPanel indicadores = new JPanel(new FlowLayout(FlowLayout.LEFT, 14, 0));
+        indicadores.setOpaque(false);
+        lblMapaDistancia.setFont(UiTheme.FONT_BOLD.deriveFont(13f));
+        lblMapaAlunos.setFont(UiTheme.FONT_BOLD.deriveFont(13f));
+        lblMapaDistancia.setForeground(UiTheme.PRIMARY_DARK);
+        lblMapaAlunos.setForeground(UiTheme.PRIMARY_DARK);
+        indicadores.add(lblMapaDistancia);
+        indicadores.add(lblMapaAlunos);
+
+        btnAlternarResumo = new RoundedButton("Expandir", new Color(234, 239, 245), UiTheme.TEXT);
+        btnAlternarResumo.addActionListener(e -> alternarResumoSuperior());
+        painel.add(indicadores, BorderLayout.CENTER);
+        painel.add(btnAlternarResumo, BorderLayout.EAST);
+        return painel;
+    }
+
+    private JPanel criarResumoLateralMapa() {
+        JPanel painel = new JPanel(new BorderLayout(8, 8));
+        painel.setBackground(UiTheme.SURFACE);
+        painel.setPreferredSize(new Dimension(390, 0));
+        painel.setBorder(BorderFactory.createCompoundBorder(
+                BorderFactory.createMatteBorder(0, 1, 0, 0, UiTheme.BORDER),
+                BorderFactory.createEmptyBorder(8, 10, 8, 10)));
+
+        JPanel topo = new JPanel(new BorderLayout(8, 0));
+        topo.setOpaque(false);
+        JLabel titulo = new JLabel("Estatísticas e resumo da rota");
+        titulo.setFont(UiTheme.FONT_BOLD.deriveFont(14f));
+        titulo.setForeground(UiTheme.PRIMARY_DARK);
+        JButton recolher = new RoundedButton("Recolher", new Color(234, 239, 245), UiTheme.TEXT);
+        recolher.addActionListener(e -> alternarResumoSuperior());
+        topo.add(titulo, BorderLayout.WEST);
+        topo.add(recolher, BorderLayout.EAST);
+
+        painelResumoConteudo.setOpaque(false);
+        statisticsPanel.setPreferredSize(new Dimension(360, 180));
+        bottomRoutePanel.setPreferredSize(new Dimension(360, 0));
+        painelResumoConteudo.add(statisticsPanel, BorderLayout.NORTH);
+        painelResumoConteudo.add(bottomRoutePanel, BorderLayout.CENTER);
+
+        painel.add(topo, BorderLayout.NORTH);
+        painel.add(painelResumoConteudo, BorderLayout.CENTER);
+        return painel;
+    }
+
+    private void alternarResumoSuperior() {
+        resumoExpandido = !resumoExpandido;
+        if (painelResumoCompacto != null) {
+            painelResumoCompacto.setVisible(!resumoExpandido);
+        }
+        if (painelResumoLateral != null) {
+            painelResumoLateral.setVisible(resumoExpandido);
+        }
+        revalidate();
+        repaint();
     }
 
     private JPanel criarTelaRota() {
@@ -258,6 +347,8 @@ public class MainWindow extends JFrame {
         adicionarBotao(toolbar, "Limpar rota", e -> limparRota());
         adicionarBotao(toolbar, "Centralizar", e -> mapPanel.centralizarCruzDasAlmas());
         adicionarBotao(toolbar, "Atualizar mapa", e -> mapPanel.recarregarMapa());
+        adicionarBotao(toolbar, "Restaurar mapa", e -> restaurarMapaPadrao());
+        adicionarBotao(toolbar, "Ponto", e -> abrirJanelaPontos());
         return toolbar;
     }
 
@@ -311,9 +402,7 @@ public class MainWindow extends JFrame {
         visualizar.add(checkItem("Mostrar pontos", TipoPonto.PONTO_EMBARQUE));
 
         JMenu navegar = new JMenu("Telas");
-        navegar.add(item("Principal", e -> telas.setSelectedIndex(0)));
-        navegar.add(item("Mapa", e -> telas.setSelectedIndex(1)));
-        navegar.add(item("Rota", e -> telas.setSelectedIndex(2)));
+        navegar.add(item("Mapa", e -> mostrarMapa()));
 
         JMenu algoritmos = new JMenu("Algoritmos");
         algoritmos.add(item("Dijkstra", e -> executarDijkstra()));
@@ -355,10 +444,12 @@ public class MainWindow extends JFrame {
     private void configurarEventos() {
         mapPanel.setOnPontoSelecionado(ponto -> {
             pontoSelecionado = ponto;
+            mapPanel.selecionarPonto(ponto);
             mostrarDetalhes(ponto);
         });
         treePanel.setOnSelecionado(ponto -> {
             pontoSelecionado = ponto;
+            mapPanel.selecionarPonto(ponto);
             mostrarDetalhes(ponto);
         });
         mapPanel.setOnAnimationProgress(progresso -> {
@@ -367,6 +458,11 @@ public class MainWindow extends JFrame {
             progressBar.setValue(percentual);
             statusLabel.setText("Veículo em movimento: " + percentual + "% da rota");
         });
+        mapPanel.setOnTipoLegendaAlternado(tipo -> {
+            boolean atual = Boolean.TRUE.equals(tiposVisiveis.get(tipo));
+            tiposVisiveis.put(tipo, !atual);
+            atualizarTudo();
+        });
     }
 
     private void iniciarAnimacao() {
@@ -374,7 +470,7 @@ public class MainWindow extends JFrame {
             JOptionPane.showMessageDialog(this, "Calcule uma rota com pelo menos dois pontos antes de iniciar.");
             return;
         }
-        telas.setSelectedIndex(1);
+        mostrarMapa();
         mapPanel.iniciarAnimacao(((Number) velocidadeAnimacao.getValue()).doubleValue());
     }
 
@@ -387,6 +483,10 @@ public class MainWindow extends JFrame {
         mapPanel.pararAnimacao();
         progressBar.setValue(0);
         setStatus("Animação reiniciada");
+    }
+
+    private void mostrarMapa() {
+        telas.setSelectedIndex(0);
     }
 
     private void mostrarDetalhes(Ponto ponto) {
@@ -407,16 +507,32 @@ public class MainWindow extends JFrame {
             mapPanel.destacarRota(rotaAtual, corDaOperacao(ultimaOperacao));
             bottomRoutePanel.mostrar(rotaAtual);
             statisticsPanel.atualizar(grafo, rotaAtual, algoritmoAtivo());
+            atualizarIndicadoresMapa(rotaAtual);
         } else {
             mapPanel.limparRota();
             bottomRoutePanel.limpar();
             statisticsPanel.limpar();
             statisticsPanel.atualizar(grafo, null, null);
+            atualizarIndicadoresMapa(null);
         }
         statusLabel.setText("Pontos: " + grafo.getPontos().size() + " | Arestas: " + grafo.getArestas().size());
-        if (ultimaOperacao == Operacao.NENHUMA) {
+        if (pontoSelecionado != null && grafo.getPontos().contains(pontoSelecionado)) {
+            mapPanel.selecionarPonto(pontoSelecionado);
+            mostrarDetalhes(pontoSelecionado);
+        } else if (ultimaOperacao == Operacao.NENHUMA) {
             mostrarDetalhes(null);
         }
+    }
+
+    private void atualizarIndicadoresMapa(Rota rota) {
+        if (rota != null) {
+            lblMapaDistancia.setText(String.format("Distância percorrida: %.2f km", rota.getDistanciaTotal()));
+            lblMapaAlunos.setText("Alunos: " + rota.calcularTotalAlunos());
+            return;
+        }
+        int totalAlunos = grafo.getPontos().stream().mapToInt(Ponto::getQuantidadeAlunos).sum();
+        lblMapaDistancia.setText("Distância percorrida: 0.00 km");
+        lblMapaAlunos.setText("Alunos: " + totalAlunos);
     }
 
     private List<Ponto> pontosVisiveis() {
@@ -425,6 +541,9 @@ public class MainWindow extends JFrame {
             if (Boolean.TRUE.equals(tiposVisiveis.get(ponto.getTipo()))) {
                 lista.add(ponto);
             }
+        }
+        for (TipoPonto tipo : TipoPonto.values()) {
+            mapPanel.setTipoLegendaVisivel(tipo, Boolean.TRUE.equals(tiposVisiveis.get(tipo)));
         }
         return lista;
     }
@@ -438,6 +557,25 @@ public class MainWindow extends JFrame {
         ultimoDestino = null;
         pontoSelecionado = null;
         simulationService.carregarPadrao();
+    }
+
+    private void restaurarMapaPadrao() {
+        if (JOptionPane.showConfirmDialog(this,
+                "Restaurar mapa e dados padrao de 1500 alunos?",
+                "Restaurar mapa",
+                JOptionPane.YES_NO_OPTION) != JOptionPane.YES_OPTION) {
+            return;
+        }
+        grafo.limpar();
+        rotaAtual = null;
+        routeService.limpar();
+        ultimaOperacao = Operacao.NENHUMA;
+        ultimaOrigem = null;
+        ultimoDestino = null;
+        pontoSelecionado = null;
+        simulationService.carregarPadrao();
+        mapPanel.centralizarCruzDasAlmas();
+        setStatus("Mapa restaurado com dados padrao");
     }
 
     private void abrirProjeto() {
@@ -536,8 +674,14 @@ public class MainWindow extends JFrame {
             return;
         }
         try {
-            simulationService.adicionarPonto(result.nome, result.bairro, result.latitude, result.longitude,
-                    result.alunos, result.capacidade, result.prioridade, result.turno, result.tipo);
+            int embarque = valorEmbarquePermitido(result.tipo, result.alunos);
+            int desembarque = valorDesembarquePermitido(result.tipo, result.desembarque);
+            Ponto novo = simulationService.adicionarPonto(result.nome, result.bairro, result.latitude, result.longitude,
+                    embarque, result.capacidade, result.prioridade, result.turno, result.tipo);
+            novo.setQuantidadeDesembarque(desembarque);
+            pontoSelecionado = novo;
+            mapPanel.selecionarPonto(novo);
+            mostrarDetalhes(novo);
             setStatus("Ponto adicionado: " + result.nome);
         } catch (IllegalArgumentException ex) {
             erro("Erro ao adicionar ponto", ex);
@@ -554,11 +698,14 @@ public class MainWindow extends JFrame {
             return;
         }
         try {
+            int embarque = valorEmbarquePermitido(result.tipo, result.alunos);
+            int desembarque = valorDesembarquePermitido(result.tipo, result.desembarque);
             selecionado.setNome(result.nome);
             selecionado.setBairro(result.bairro);
             selecionado.setLatitude(result.latitude);
             selecionado.setLongitude(result.longitude);
-            selecionado.setQuantidadeAlunos(result.alunos);
+            selecionado.setQuantidadeAlunos(embarque);
+            selecionado.setQuantidadeDesembarque(desembarque);
             selecionado.setCapacidade(result.capacidade);
             selecionado.setPrioridade(result.prioridade);
             selecionado.setTurno(result.turno);
@@ -570,6 +717,14 @@ public class MainWindow extends JFrame {
         } catch (IllegalArgumentException ex) {
             erro("Erro ao editar ponto", ex);
         }
+    }
+
+    private int valorEmbarquePermitido(TipoPonto tipo, int valor) {
+        return DadosIniciaisService.isTipoEmbarque(tipo) ? valor : 0;
+    }
+
+    private int valorDesembarquePermitido(TipoPonto tipo, int valor) {
+        return DadosIniciaisService.isTipoDesembarque(tipo) ? valor : 0;
     }
 
     private void atualizarRotaViariaEmSegundoPlano() {
@@ -596,15 +751,196 @@ public class MainWindow extends JFrame {
                 JOptionPane.YES_NO_OPTION) != JOptionPane.YES_OPTION) {
             return;
         }
-        simulationService.removerPonto(selecionado);
         pontoSelecionado = null;
         rotaAtual = null;
         ultimaOperacao = Operacao.NENHUMA;
+        ultimaOrigem = null;
+        ultimoDestino = null;
+        routeService.limpar();
+        simulationService.removerPonto(selecionado);
+        mapPanel.selecionarPonto(null);
+        detailsPanel.limpar();
+        atualizarTudo();
         setStatus("Ponto removido: " + selecionado.getNome());
     }
 
     private Ponto pontoSelecionado() {
-        return pontoSelecionado;
+        if (pontoSelecionado != null && grafo.getPontos().contains(pontoSelecionado)) {
+            return pontoSelecionado;
+        }
+        Ponto escolhido = escolherPonto("Selecione um ponto");
+        if (escolhido != null) {
+            pontoSelecionado = escolhido;
+            mapPanel.selecionarPonto(escolhido);
+            mostrarDetalhes(escolhido);
+        }
+        return escolhido;
+    }
+
+    private void abrirJanelaPontos() {
+        javax.swing.JDialog dialog = new javax.swing.JDialog(this, "Pontos", false);
+        dialog.setLayout(new BorderLayout(10, 10));
+        dialog.getContentPane().setBackground(UiTheme.BACKGROUND);
+
+        JTabbedPane abasPontos = new JTabbedPane();
+        Map<java.awt.Component, JTable> tabelasPorAba = new java.util.LinkedHashMap<>();
+        Map<java.awt.Component, PontoTableModel> modelosPorAba = new java.util.LinkedHashMap<>();
+        adicionarAbaPontos(abasPontos, tabelasPorAba, modelosPorAba, "Escolas", TipoPonto.ESCOLA);
+        adicionarAbaPontos(abasPontos, tabelasPorAba, modelosPorAba, "Universidades", TipoPonto.UNIVERSIDADE);
+        adicionarAbaPontos(abasPontos, tabelasPorAba, modelosPorAba, "Bairros", TipoPonto.BAIRRO);
+        adicionarAbaPontos(abasPontos, tabelasPorAba, modelosPorAba, "Embarques", TipoPonto.PONTO_EMBARQUE);
+        adicionarAbaPontos(abasPontos, tabelasPorAba, modelosPorAba, "Outros", TipoPonto.OUTRO);
+        atualizarAbasPontos(modelosPorAba);
+
+        JPanel topo = new JPanel(new BorderLayout());
+        topo.setOpaque(false);
+        JLabel titulo = new JLabel("Selecione um ponto para destacar no mapa");
+        titulo.setFont(UiTheme.FONT_BOLD.deriveFont(15f));
+        titulo.setForeground(UiTheme.TEXT);
+        topo.add(titulo, BorderLayout.WEST);
+
+        JPanel acoes = new JPanel(new FlowLayout(FlowLayout.RIGHT, 6, 0));
+        acoes.setOpaque(false);
+        JButton novo = new RoundedButton("+ Novo", UiTheme.ACCENT, Color.WHITE);
+        JButton editar = new RoundedButton("Editar", new Color(54, 91, 128), Color.WHITE);
+        JButton remover = new RoundedButton("Remover", UiTheme.DANGER, Color.WHITE);
+        JButton fechar = new RoundedButton("Fechar", new Color(234, 239, 245), UiTheme.TEXT);
+        novo.addActionListener(e -> {
+            novoPonto();
+            atualizarAbasPontos(modelosPorAba);
+        });
+        editar.addActionListener(e -> {
+            Ponto ponto = pontoDaAba(abasPontos, tabelasPorAba, modelosPorAba);
+            if (ponto != null) pontoSelecionado = ponto;
+            editarPontoSelecionado();
+            atualizarAbasPontos(modelosPorAba);
+        });
+        remover.addActionListener(e -> {
+            Ponto ponto = pontoDaAba(abasPontos, tabelasPorAba, modelosPorAba);
+            if (ponto != null) pontoSelecionado = ponto;
+            removerPontoSelecionado();
+            atualizarAbasPontos(modelosPorAba);
+        });
+        fechar.addActionListener(e -> dialog.dispose());
+        acoes.add(novo);
+        acoes.add(editar);
+        acoes.add(remover);
+        acoes.add(fechar);
+
+        JPanel rodape = new JPanel(new BorderLayout(8, 8));
+        rodape.setOpaque(false);
+        rodape.add(criarLegendaPontos(), BorderLayout.CENTER);
+        rodape.add(acoes, BorderLayout.SOUTH);
+
+        dialog.add(topo, BorderLayout.NORTH);
+        dialog.add(abasPontos, BorderLayout.CENTER);
+        dialog.add(rodape, BorderLayout.SOUTH);
+        dialog.setSize(760, 460);
+        dialog.setLocationRelativeTo(this);
+        dialog.setVisible(true);
+    }
+
+    private void adicionarAbaPontos(JTabbedPane abas,
+                                    Map<java.awt.Component, JTable> tabelasPorAba,
+                                    Map<java.awt.Component, PontoTableModel> modelosPorAba,
+                                    String titulo,
+                                    TipoPonto tipo) {
+        PontoTableModel model = new PontoTableModel();
+        JTable tabela = new JTable(model);
+        tabela.setRowHeight(26);
+        tabela.setSelectionMode(javax.swing.ListSelectionModel.SINGLE_SELECTION);
+        tabela.setAutoCreateRowSorter(true);
+        tabela.getSelectionModel().addListSelectionListener(e -> {
+            if (e.getValueIsAdjusting()) return;
+            Ponto ponto = pontoDaTabela(tabela, model);
+            if (ponto != null) {
+                pontoSelecionado = ponto;
+                mapPanel.selecionarPonto(ponto);
+                mostrarDetalhes(ponto);
+                mostrarMapa();
+            }
+        });
+        tabela.addMouseListener(new java.awt.event.MouseAdapter() {
+            @Override public void mouseClicked(java.awt.event.MouseEvent e) {
+                if (e.getClickCount() == 2) {
+                    editarPontoSelecionado();
+                    atualizarAbasPontos(modelosPorAba);
+                }
+            }
+        });
+
+        JScrollPane scroll = new JScrollPane(tabela);
+        abas.addTab(titulo, scroll);
+        tabelasPorAba.put(scroll, tabela);
+        modelosPorAba.put(scroll, model);
+    }
+
+    private void atualizarAbasPontos(Map<java.awt.Component, PontoTableModel> modelosPorAba) {
+        for (Map.Entry<java.awt.Component, PontoTableModel> entry : modelosPorAba.entrySet()) {
+            int index = ((JTabbedPane) entry.getKey().getParent()).indexOfComponent(entry.getKey());
+            TipoPonto tipo = tipoPorIndiceAba(index);
+            List<Ponto> pontos = new ArrayList<>();
+            for (Ponto ponto : grafo.getPontos()) {
+                if (ponto.getTipo() == tipo) {
+                    pontos.add(ponto);
+                }
+            }
+            entry.getValue().setPontos(pontos);
+        }
+    }
+
+    private TipoPonto tipoPorIndiceAba(int index) {
+        switch (index) {
+            case 0:
+                return TipoPonto.ESCOLA;
+            case 1:
+                return TipoPonto.UNIVERSIDADE;
+            case 2:
+                return TipoPonto.BAIRRO;
+            case 3:
+                return TipoPonto.PONTO_EMBARQUE;
+            default:
+                return TipoPonto.OUTRO;
+        }
+    }
+
+    private Ponto pontoDaAba(JTabbedPane abas,
+                             Map<java.awt.Component, JTable> tabelasPorAba,
+                             Map<java.awt.Component, PontoTableModel> modelosPorAba) {
+        java.awt.Component aba = abas.getSelectedComponent();
+        JTable tabela = tabelasPorAba.get(aba);
+        PontoTableModel model = modelosPorAba.get(aba);
+        return tabela != null && model != null ? pontoDaTabela(tabela, model) : null;
+    }
+
+    private JPanel criarLegendaPontos() {
+        JPanel legenda = new JPanel(new FlowLayout(FlowLayout.LEFT, 10, 4));
+        legenda.setOpaque(false);
+        adicionarItemLegenda(legenda, "E", "Escola", new Color(210, 50, 50));
+        adicionarItemLegenda(legenda, "U", "Universidade", new Color(45, 90, 220));
+        adicionarItemLegenda(legenda, "B", "Bairro", new Color(190, 140, 30));
+        adicionarItemLegenda(legenda, "P", "Ponto de embarque", new Color(50, 160, 70));
+        adicionarItemLegenda(legenda, "S", "Inicio da rota", new Color(40, 120, 220));
+        adicionarItemLegenda(legenda, "D", "Destino", new Color(230, 60, 60));
+        return legenda;
+    }
+
+    private void adicionarItemLegenda(JPanel legenda, String letra, String texto, Color cor) {
+        JLabel item = new JLabel(letra + " " + texto);
+        item.setOpaque(true);
+        item.setBackground(cor);
+        item.setForeground(Color.WHITE);
+        item.setFont(UiTheme.FONT_BOLD.deriveFont(11f));
+        item.setBorder(BorderFactory.createEmptyBorder(3, 7, 3, 7));
+        legenda.add(item);
+    }
+
+    private Ponto pontoDaTabela(JTable tabela, PontoTableModel model) {
+        int viewRow = tabela.getSelectedRow();
+        if (viewRow < 0) {
+            return null;
+        }
+        return model.getPonto(tabela.convertRowIndexToModel(viewRow));
     }
 
     private PontoEditResult dialogoPonto(Ponto ponto) {
@@ -619,6 +955,7 @@ public class MainWindow extends JFrame {
         javax.swing.JTextField latitude = new javax.swing.JTextField(ponto != null ? String.valueOf(ponto.getLatitude()) : "-12.6700");
         javax.swing.JTextField longitude = new javax.swing.JTextField(ponto != null ? String.valueOf(ponto.getLongitude()) : "-39.1000");
         javax.swing.JTextField alunos = new javax.swing.JTextField(ponto != null ? String.valueOf(ponto.getQuantidadeAlunos()) : "0");
+        javax.swing.JTextField desembarque = new javax.swing.JTextField(ponto != null ? String.valueOf(ponto.getQuantidadeDesembarque()) : "0");
         javax.swing.JTextField capacidade = new javax.swing.JTextField(ponto != null ? String.valueOf(ponto.getCapacidade()) : "0");
         javax.swing.JTextField prioridade = new javax.swing.JTextField(ponto != null ? String.valueOf(ponto.getPrioridade()) : "1");
         javax.swing.JTextField turno = new javax.swing.JTextField(ponto != null ? ponto.getTurno() : "");
@@ -630,7 +967,8 @@ public class MainWindow extends JFrame {
         adicionarCampo(painel, c, row++, "Bairro", bairro);
         adicionarCampo(painel, c, row++, "Latitude", latitude);
         adicionarCampo(painel, c, row++, "Longitude", longitude);
-        adicionarCampo(painel, c, row++, "Alunos", alunos);
+        adicionarCampo(painel, c, row++, "Alunos embarque", alunos);
+        adicionarCampo(painel, c, row++, "Alunos desembarque", desembarque);
         adicionarCampo(painel, c, row++, "Capacidade", capacidade);
         adicionarCampo(painel, c, row++, "Prioridade", prioridade);
         adicionarCampo(painel, c, row++, "Turno", turno);
@@ -649,6 +987,7 @@ public class MainWindow extends JFrame {
                     Double.parseDouble(latitude.getText().trim()),
                     Double.parseDouble(longitude.getText().trim()),
                     Integer.parseInt(alunos.getText().trim()),
+                    Integer.parseInt(desembarque.getText().trim()),
                     Integer.parseInt(capacidade.getText().trim()),
                     Integer.parseInt(prioridade.getText().trim()),
                     turno.getText().trim(),
@@ -694,79 +1033,114 @@ public class MainWindow extends JFrame {
     }
 
     private void executarPrim() {
-        Ponto origem = escolherPonto("Selecionar inicio");
+        List<Ponto> pontos = escolherPontosOuTodos("Selecionar pontos para Prim", 2);
+        if (pontos == null) {
+            return;
+        }
+        Ponto origem = escolherPontoDaLista("Selecionar ponto inicial do Prim", pontos);
         if (origem == null) {
             return;
         }
         executarComProgresso(() -> {
-            routeService.executarPrim(origem);
+            routeService.executarPrim(origem, pontos);
             rotaAtual = routeService.getRotaAtual();
             ultimaOperacao = Operacao.PRIM;
             ultimaOrigem = origem;
             ultimoDestino = null;
-        }, new Color(30, 150, 60), "Prim calculado");
+        }, new Color(30, 150, 60), "Prim calculado para " + pontos.size() + " pontos");
     }
 
     private void executarKruskal() {
+        List<Ponto> pontos = escolherPontosOuTodos("Selecionar pontos para Kruskal", 2);
+        if (pontos == null) {
+            return;
+        }
+        Ponto origem = escolherPontoDaLista("Selecionar ponto inicial do Kruskal", pontos);
+        if (origem == null) {
+            return;
+        }
+        List<Ponto> pontosOrdenados = new ArrayList<>();
+        pontosOrdenados.add(origem);
+        for (Ponto ponto : pontos) {
+            if (!ponto.equals(origem)) {
+                pontosOrdenados.add(ponto);
+            }
+        }
         executarComProgresso(() -> {
-            routeService.executarKruskal();
+            routeService.executarKruskal(pontosOrdenados);
             rotaAtual = routeService.getRotaAtual();
             ultimaOperacao = Operacao.KRUSKAL;
-            ultimaOrigem = null;
+            ultimaOrigem = origem;
             ultimoDestino = null;
-        }, new Color(210, 140, 40), "Kruskal calculado");
+        }, new Color(210, 140, 40), "Kruskal calculado a partir de " + origem.getNome());
     }
 
     private void executarBFS() {
-        Ponto origem = escolherPonto("Selecionar inicio");
+        List<Ponto> pontos = escolherPontosOuTodos("Selecionar pontos para BFS", 2);
+        if (pontos == null) {
+            return;
+        }
+        Ponto origem = escolherPontoDaLista("Selecionar ponto inicial do BFS", pontos);
         if (origem == null) {
             return;
         }
         executarComProgresso(() -> {
-            rotaAtual = routeService.executarBFS(origem);
+            rotaAtual = routeService.executarBFS(origem, pontos);
             ultimaOperacao = Operacao.BFS;
             ultimaOrigem = origem;
             ultimoDestino = null;
-        }, Color.CYAN.darker(), "BFS calculado");
+        }, Color.CYAN.darker(), "BFS calculado para " + pontos.size() + " pontos");
     }
 
     private void executarDFS() {
-        Ponto origem = escolherPonto("Selecionar inicio");
+        List<Ponto> pontos = escolherPontosOuTodos("Selecionar pontos para DFS", 2);
+        if (pontos == null) {
+            return;
+        }
+        Ponto origem = escolherPontoDaLista("Selecionar ponto inicial do DFS", pontos);
         if (origem == null) {
             return;
         }
         executarComProgresso(() -> {
-            rotaAtual = routeService.executarDFS(origem);
+            rotaAtual = routeService.executarDFS(origem, pontos);
             ultimaOperacao = Operacao.DFS;
             ultimaOrigem = origem;
             ultimoDestino = null;
-        }, Color.PINK.darker(), "DFS calculado");
+        }, Color.PINK.darker(), "DFS calculado para " + pontos.size() + " pontos");
     }
 
     private void executarGuloso() {
-        Ponto origem = escolherPonto("Selecionar inicio");
+        List<Ponto> pontos = escolherPontosOuTodos("Selecionar pontos para Guloso", 2);
+        if (pontos == null) {
+            return;
+        }
+        Ponto origem = escolherPontoDaLista("Selecionar ponto inicial do Guloso", pontos);
         if (origem == null) {
             return;
         }
         executarComProgresso(() -> {
-            rotaAtual = routeService.executarGuloso(origem);
+            rotaAtual = routeService.executarGuloso(origem, pontos);
             ultimaOperacao = Operacao.GULOSO;
             ultimaOrigem = origem;
             ultimoDestino = null;
-        }, new Color(140, 60, 170), "Guloso calculado");
+        }, new Color(140, 60, 170), "Guloso calculado para " + pontos.size() + " pontos");
     }
 
     private void executarTSP() {
-        Ponto origem = escolherPonto("Selecionar inicio");
+        List<Ponto> pontos = escolherPontosOuTodos("Selecionar pontos para TSP", 2);
+        if (pontos == null) {
+            return;
+        }
+        Ponto origem = escolherPontoDaLista("Selecionar ponto inicial do TSP", pontos);
         if (origem == null) {
             return;
         }
         executarComProgresso(() -> {
-            rotaAtual = routeService.executarTSP(origem);
+            rotaAtual = routeService.executarTSP(origem, pontos);
             ultimaOperacao = Operacao.TSP;
             ultimaOrigem = origem;
             ultimoDestino = null;
-        }, Color.RED, "Caixeiro viajante calculado");
+        }, Color.RED, "Caixeiro viajante calculado para " + pontos.size() + " pontos");
     }
 
     private void executarComProgresso(Runnable tarefa, Color cor, String mensagem) {
@@ -786,7 +1160,7 @@ public class MainWindow extends JFrame {
                 mapPanel.destacarRota(rotaAtual, cor);
                 bottomRoutePanel.mostrar(rotaAtual);
                 atualizarTudo();
-                telas.setSelectedIndex(1);
+                mostrarMapa();
                 setStatus(mensagem);
             }
         };
@@ -826,6 +1200,78 @@ public class MainWindow extends JFrame {
         List<Ponto> pontos = new ArrayList<>(grafo.getPontos());
         if (pontos.isEmpty()) {
             JOptionPane.showMessageDialog(this, "Nao ha pontos cadastrados.");
+            return null;
+        }
+        Object escolhido = JOptionPane.showInputDialog(this, titulo, titulo,
+                JOptionPane.QUESTION_MESSAGE, null, pontos.toArray(), pontos.get(0));
+        return escolhido instanceof Ponto ? (Ponto) escolhido : null;
+    }
+
+    private List<Ponto> escolherPontos(String titulo) {
+        List<Ponto> pontos = new ArrayList<>(grafo.getPontos());
+        if (pontos.isEmpty()) {
+            JOptionPane.showMessageDialog(this, "Nao ha pontos cadastrados.");
+            return null;
+        }
+        javax.swing.JList<Ponto> lista = new javax.swing.JList<>(pontos.toArray(new Ponto[0]));
+        lista.setSelectionMode(javax.swing.ListSelectionModel.MULTIPLE_INTERVAL_SELECTION);
+        int[] indices = new int[pontos.size()];
+        for (int i = 0; i < indices.length; i++) {
+            indices[i] = i;
+        }
+        lista.setSelectedIndices(indices);
+        JScrollPane scroll = new JScrollPane(lista);
+        scroll.setPreferredSize(new Dimension(460, 320));
+
+        JPanel painel = new JPanel(new BorderLayout(8, 8));
+        painel.add(new JLabel("Marque os pontos que a arvore geradora minima deve conectar:"), BorderLayout.NORTH);
+        painel.add(scroll, BorderLayout.CENTER);
+
+        int confirm = JOptionPane.showConfirmDialog(this, painel, titulo,
+                JOptionPane.OK_CANCEL_OPTION, JOptionPane.PLAIN_MESSAGE);
+        if (confirm != JOptionPane.OK_OPTION) {
+            return null;
+        }
+        return lista.getSelectedValuesList();
+    }
+
+    private List<Ponto> escolherPontosOuTodos(String titulo, int minimo) {
+        List<Ponto> todos = new ArrayList<>(grafo.getPontos());
+        if (todos.size() < minimo) {
+            JOptionPane.showMessageDialog(this, "Cadastre pelo menos " + minimo + " pontos.");
+            return null;
+        }
+
+        Object[] opcoes = {"Todos", "Escolher pontos", "Cancelar"};
+        int escolha = JOptionPane.showOptionDialog(this,
+                "Quais pontos deseja usar neste algoritmo?",
+                titulo,
+                JOptionPane.DEFAULT_OPTION,
+                JOptionPane.QUESTION_MESSAGE,
+                null,
+                opcoes,
+                opcoes[0]);
+
+        if (escolha == 0) {
+            return todos;
+        }
+        if (escolha != 1) {
+            return null;
+        }
+
+        List<Ponto> selecionados = escolherPontos(titulo);
+        if (selecionados == null) {
+            return null;
+        }
+        if (selecionados.size() < minimo) {
+            JOptionPane.showMessageDialog(this, "Selecione pelo menos " + minimo + " pontos.");
+            return null;
+        }
+        return selecionados;
+    }
+
+    private Ponto escolherPontoDaLista(String titulo, List<Ponto> pontos) {
+        if (pontos == null || pontos.isEmpty()) {
             return null;
         }
         Object escolhido = JOptionPane.showInputDialog(this, titulo, titulo,
@@ -876,18 +1322,20 @@ public class MainWindow extends JFrame {
         final double latitude;
         final double longitude;
         final int alunos;
+        final int desembarque;
         final int capacidade;
         final int prioridade;
         final String turno;
         final TipoPonto tipo;
 
         private PontoEditResult(String nome, String bairro, double latitude, double longitude, int alunos,
-                                int capacidade, int prioridade, String turno, TipoPonto tipo) {
+                                int desembarque, int capacidade, int prioridade, String turno, TipoPonto tipo) {
             this.nome = nome;
             this.bairro = bairro;
             this.latitude = latitude;
             this.longitude = longitude;
             this.alunos = alunos;
+            this.desembarque = desembarque;
             this.capacidade = capacidade;
             this.prioridade = prioridade;
             this.turno = turno;

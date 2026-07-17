@@ -20,6 +20,7 @@ public class DetailsPanel extends JPanel {
     private final JLabel latitude = new JLabel("-");
     private final JLabel longitude = new JLabel("-");
     private final JLabel alunos = new JLabel("-");
+    private final JLabel desembarque = new JLabel("-");
     private final JLabel bairro = new JLabel("-");
     private final JLabel conexoes = new JLabel("-");
     private final JLabel distanciaMedia = new JLabel("-");
@@ -37,7 +38,8 @@ public class DetailsPanel extends JPanel {
         adicionarLinha(grid, "Tipo", tipo);
         adicionarLinha(grid, "Latitude", latitude);
         adicionarLinha(grid, "Longitude", longitude);
-        adicionarLinha(grid, "Alunos", alunos);
+        adicionarLinha(grid, "Embarque", alunos);
+        adicionarLinha(grid, "Desembarque", desembarque);
         adicionarLinha(grid, "Bairro", bairro);
         adicionarLinha(grid, "Conexoes", conexoes);
         adicionarLinha(grid, "Distancia media", distanciaMedia);
@@ -58,6 +60,7 @@ public class DetailsPanel extends JPanel {
         latitude.setText(String.format("%.6f", ponto.getLatitude()));
         longitude.setText(String.format("%.6f", ponto.getLongitude()));
         alunos.setText(String.valueOf(ponto.getQuantidadeAlunos()));
+        desembarque.setText(String.valueOf(ponto.getQuantidadeDesembarque()));
         bairro.setText(ponto.getBairro());
         conexoes.setText(String.valueOf(grafo.getVizinhos(ponto).size()));
         distanciaMedia.setText(String.format("%.2f km", ponto.getDistanciaMedia()));
@@ -72,6 +75,7 @@ public class DetailsPanel extends JPanel {
         latitude.setText("-");
         longitude.setText("-");
         alunos.setText("-");
+        desembarque.setText("-");
         bairro.setText("-");
         conexoes.setText("-");
         distanciaMedia.setText("-");

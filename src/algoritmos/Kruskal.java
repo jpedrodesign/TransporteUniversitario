@@ -5,22 +5,35 @@ import model.Grafo;
 import model.Ponto;
 
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.Comparator;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 public class Kruskal {
 
     public List<Aresta> executar(Grafo grafo) {
+        return executar(grafo, grafo != null ? grafo.getPontos() : null);
+    }
+
+    public List<Aresta> executar(Grafo grafo, Collection<Ponto> pontosEscolhidos) {
         if (grafo == null) {
             throw new IllegalArgumentException("Grafo nao pode ser nulo.");
         }
+        if (pontosEscolhidos == null || pontosEscolhidos.isEmpty()) {
+            throw new IllegalArgumentException("Selecione pelo menos um ponto.");
+        }
 
+        Set<Ponto> permitidos = new HashSet<>(pontosEscolhidos);
         List<Aresta> arestas = new ArrayList<>(grafo.getArestas());
+        arestas.removeIf(aresta -> !permitidos.contains(aresta.getOrigem())
+                || !permitidos.contains(aresta.getDestino()));
         arestas.sort(Comparator.comparingDouble(Aresta::getPeso));
 
-        List<Ponto> pontos = new ArrayList<>(grafo.getPontos());
+        List<Ponto> pontos = new ArrayList<>(permitidos);
         Map<Ponto, Integer> indice = new HashMap<>();
         for (int i = 0; i < pontos.size(); i++) {
             indice.put(pontos.get(i), i);

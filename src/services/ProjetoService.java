@@ -29,6 +29,7 @@ public class ProjetoService {
                         String.valueOf(ponto.getLatitude()),
                         String.valueOf(ponto.getLongitude()),
                         String.valueOf(ponto.getQuantidadeAlunos()),
+                        String.valueOf(ponto.getQuantidadeDesembarque()),
                         String.valueOf(ponto.getCapacidade()),
                         String.valueOf(ponto.getPrioridade()),
                         escape(ponto.getTurno()),
@@ -61,16 +62,20 @@ public class ProjetoService {
                     continue;
                 }
                 if ("PONTO".equals(partes[0]) && partes.length >= 10) {
+                    boolean formatoNovo = partes.length >= 11;
                     Ponto ponto = new Ponto(
                             unescape(partes[1]),
                             unescape(partes[2]),
                             Double.parseDouble(partes[3]),
                             Double.parseDouble(partes[4]),
                             Integer.parseInt(partes[5]),
-                            Integer.parseInt(partes[6]),
-                            Integer.parseInt(partes[7]),
-                            unescape(partes[8]),
-                            TipoPonto.valueOf(partes[9]));
+                            Integer.parseInt(partes[formatoNovo ? 7 : 6]),
+                            Integer.parseInt(partes[formatoNovo ? 8 : 7]),
+                            unescape(partes[formatoNovo ? 9 : 8]),
+                            TipoPonto.valueOf(partes[formatoNovo ? 10 : 9]));
+                    if (formatoNovo) {
+                        ponto.setQuantidadeDesembarque(Integer.parseInt(partes[6]));
+                    }
                     pontos.put(ponto.getNome(), ponto);
                 } else if ("ARESTA".equals(partes[0]) && partes.length >= 4) {
                     arestas.add(partes);
