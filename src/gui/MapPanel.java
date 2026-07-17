@@ -278,7 +278,11 @@ public class MapPanel extends JPanel {
                 destinoRota = rota.getPercurso().get(rota.getPercurso().size() - 1);
             }
             routePainter = new RoutePainter(rota, cor);
-            animation.setRoute(rota);
+            if (rota.getGeometria().size() >= 2) {
+                animation.setRoute(rota);
+            } else {
+                animationFrame = null;
+            }
             enquadrarRota(rota);
         }
         atualizarPaineis();

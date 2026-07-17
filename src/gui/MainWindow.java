@@ -1016,7 +1016,7 @@ public class MainWindow extends JFrame {
     }
 
     private void executarDijkstra() {
-        Ponto origem = escolherPonto("Selecionar origem");
+        Ponto origem = escolherPontoInicial("Selecionar origem");
         if (origem == null) {
             return;
         }
@@ -1037,7 +1037,7 @@ public class MainWindow extends JFrame {
         if (pontos == null) {
             return;
         }
-        Ponto origem = escolherPontoDaLista("Selecionar ponto inicial do Prim", pontos);
+        Ponto origem = escolherPontoInicialDaLista("Selecionar ponto inicial do Prim", pontos);
         if (origem == null) {
             return;
         }
@@ -1055,7 +1055,7 @@ public class MainWindow extends JFrame {
         if (pontos == null) {
             return;
         }
-        Ponto origem = escolherPontoDaLista("Selecionar ponto inicial do Kruskal", pontos);
+        Ponto origem = escolherPontoInicialDaLista("Selecionar ponto inicial do Kruskal", pontos);
         if (origem == null) {
             return;
         }
@@ -1080,7 +1080,7 @@ public class MainWindow extends JFrame {
         if (pontos == null) {
             return;
         }
-        Ponto origem = escolherPontoDaLista("Selecionar ponto inicial do BFS", pontos);
+        Ponto origem = escolherPontoInicialDaLista("Selecionar ponto inicial do BFS", pontos);
         if (origem == null) {
             return;
         }
@@ -1097,7 +1097,7 @@ public class MainWindow extends JFrame {
         if (pontos == null) {
             return;
         }
-        Ponto origem = escolherPontoDaLista("Selecionar ponto inicial do DFS", pontos);
+        Ponto origem = escolherPontoInicialDaLista("Selecionar ponto inicial do DFS", pontos);
         if (origem == null) {
             return;
         }
@@ -1114,7 +1114,7 @@ public class MainWindow extends JFrame {
         if (pontos == null) {
             return;
         }
-        Ponto origem = escolherPontoDaLista("Selecionar ponto inicial do Guloso", pontos);
+        Ponto origem = escolherPontoInicialDaLista("Selecionar ponto inicial do Guloso", pontos);
         if (origem == null) {
             return;
         }
@@ -1131,7 +1131,7 @@ public class MainWindow extends JFrame {
         if (pontos == null) {
             return;
         }
-        Ponto origem = escolherPontoDaLista("Selecionar ponto inicial do TSP", pontos);
+        Ponto origem = escolherPontoInicialDaLista("Selecionar ponto inicial do TSP", pontos);
         if (origem == null) {
             return;
         }
@@ -1268,6 +1268,29 @@ public class MainWindow extends JFrame {
             return null;
         }
         return selecionados;
+    }
+
+    private Ponto escolherPontoInicial(String titulo) {
+        return escolherPontoInicialDaLista(titulo, new ArrayList<>(grafo.getPontos()));
+    }
+
+    private Ponto escolherPontoInicialDaLista(String titulo, List<Ponto> pontos) {
+        List<Ponto> pontosIniciais = new ArrayList<>();
+        if (pontos != null) {
+            for (Ponto ponto : pontos) {
+                if (DadosIniciaisService.isTipoEmbarque(ponto.getTipo())) {
+                    pontosIniciais.add(ponto);
+                }
+            }
+        }
+        if (pontosIniciais.isEmpty()) {
+            JOptionPane.showMessageDialog(this,
+                    "O ponto inicial precisa ser um bairro ou ponto de embarque.",
+                    "Ponto inicial",
+                    JOptionPane.WARNING_MESSAGE);
+            return null;
+        }
+        return escolherPontoDaLista(titulo, pontosIniciais);
     }
 
     private Ponto escolherPontoDaLista(String titulo, List<Ponto> pontos) {

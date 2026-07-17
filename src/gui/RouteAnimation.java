@@ -100,7 +100,12 @@ final class RouteAnimation {
     }
 
     private void emitFrame() {
-        if (path.isEmpty()) return;
+        if (path.size() < 2) {
+            if (!path.isEmpty()) {
+                frameConsumer.accept(new Frame(path.get(0), 0.0, 0.0));
+            }
+            return;
+        }
         int segment = findSegment(travelledKm);
         int next = Math.min(segment + 1, path.size() - 1);
         double segmentLength = accumulatedKm[next] - accumulatedKm[segment];
