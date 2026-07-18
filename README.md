@@ -1,148 +1,64 @@
-# Sistema de Planejamento de Rotas — Cruz das Almas/BA
+# Planejamento de Rotas para Transporte Estudantil — Cruz das Almas/BA
 
-Aplicação desktop desenvolvida em Java Swing como Trabalho Final da disciplina de Estrutura de Dados. O sistema representa pontos de Cruz das Almas/BA como um grafo, executa algoritmos clássicos, desenha as rotas no mapa e simula o deslocamento de um veículo.
+Aplicação desktop em Java Swing que modela pontos de Cruz das Almas/BA como um grafo, calcula rotas com algoritmos clássicos de Estrutura de Dados e simula o deslocamento de um veículo no mapa.
 
-O projeto utiliza apenas o JDK e bibliotecas JAR armazenadas em `lib/`. Não depende de Maven, Gradle ou Node.js.
+O projeto foi desenvolvido como trabalho final da disciplina de Estrutura de Dados. Não utiliza Maven, Gradle ou Node.js: basta o JDK e as bibliotecas JAR já incluídas em [`lib/`](lib/).
 
-## Interface
+![Tela principal do Planejamento de Rotas para Transporte Estudantil](docs/prints/tela-principal-mapa.png)
 
-![Tela principal do Sistema de Planejamento de Rotas](docs/prints/tela-principal-mapa.png)
+## Sumário
 
-### Rota calculada e painel de informações
+- [Visão geral](#visão-geral)
+- [Início rápido](#início-rápido)
+- [Como usar](#como-usar)
+- [Algoritmos](#algoritmos)
+- [Mapas, rotas e modo offline](#mapas-rotas-e-modo-offline)
+- [Base de dados](#base-de-dados)
+- [Estrutura do projeto](#estrutura-do-projeto)
+- [Testes](#testes)
+- [Documentação](#documentação)
+- [Solução de problemas](#solução-de-problemas)
+- [Autores](#autores)
+
+## Visão geral
+
+O sistema reúne em uma única interface:
+
+- mapa interativo do OpenStreetMap, com zoom, movimentação e filtros por tipo de ponto;
+- cadastro, pesquisa, edição e remoção de escolas, universidades, bairros e pontos de embarque;
+- cálculo com Dijkstra, Prim, Kruskal, BFS, DFS, Guloso e TSP simplificado;
+- seleção de origem, destino, ponto inicial e subconjunto de paradas;
+- desenho da rota pelas ruas, com enquadramento automático do percurso;
+- estatísticas de distância, duração, alunos, paradas e combustível;
+- simulação animada do veículo, com velocidade configurável, pausa e reinício;
+- abertura e salvamento de projetos;
+- exportação dos resultados em CSV, TXT e PDF;
+- fallback local quando o serviço de rotas viárias estiver indisponível.
+
+### Rota calculada
 
 ![Rota calculada com o TSP simplificado](docs/prints/tela-rota-tsp.png)
 
-A interface possui mapa interativo, legenda, gerenciamento de pontos, seleção de algoritmo, controles de simulação, ajuste de velocidade e um painel lateral redimensionável com estatísticas e resumo da rota.
+O painel lateral redimensionável apresenta as estatísticas e a ordem de visita. A rota desenhada e a animação usam a mesma sequência de coordenadas para manter o veículo alinhado ao percurso.
 
-Consulte [todas as telas e o quadro comparativo dos algoritmos](docs/telas-e-comparativo-algoritmos.md).
+## Início rápido
 
-## Base padrão
-
-| Informação | Quantidade |
-|---|---:|
-| Pontos cadastrados | 36 |
-| Escolas | 18 |
-| Universidades | 1 |
-| Bairros | 14 |
-| Pontos de embarque | 3 |
-| Arestas | 349 |
-| Alunos | 1500 |
-
-As coordenadas usam o sistema WGS84. A aplicação inicia centralizada em Cruz das Almas, nas coordenadas aproximadas `-12.6723, -39.1054`.
-
-## Funcionalidades
-
-- visualização do OpenStreetMap com zoom e movimentação;
-- marcadores distintos para escolas, universidade, bairros e pontos de embarque;
-- legenda interativa com filtros por tipo de ponto;
-- cadastro, pesquisa, edição e remoção de pontos;
-- seleção de todos os pontos ou de um subconjunto para o cálculo;
-- seleção de origem, destino e ponto inicial;
-- desenho da rota com distâncias entre paradas;
-- enquadramento automático do percurso;
-- estatísticas de distância, tempo, alunos, paradas e combustível;
-- resumo textual com a ordem de visita;
-- painel lateral ajustável com `JSplitPane`;
-- animação do veículo com velocidade configurável, pausa e reinício;
-- abertura e salvamento de projetos;
-- exportação em CSV, TXT e PDF;
-- funcionamento local quando o serviço de rotas viárias estiver indisponível.
-
-## Algoritmos
-
-| Algoritmo | Finalidade |
-|---|---|
-| Dijkstra | Menor caminho entre uma origem e um destino |
-| Prim | Árvore geradora mínima a partir de um ponto inicial |
-| Kruskal | Árvore geradora mínima pela ordenação global das arestas |
-| BFS | Percurso do grafo em largura |
-| DFS | Percurso do grafo em profundidade |
-| Guloso | Rota aproximada considerando distância, prioridade e demanda |
-| TSP simplificado | Heurística para ordenar a visita de várias paradas |
-
-A classe `VRP` também está disponível na camada de algoritmos para distribuição entre múltiplos veículos, mas não aparece na toolbar principal atual.
-
-Para manter o desenho e a animação contínuos, mudanças entre vértices não adjacentes são expandidas para caminhos existentes no grafo.
-
-## Mapas e rotas viárias
-
-O mapa é fornecido pelo OpenStreetMap por meio do JXMapViewer2. Após o cálculo, o sistema tenta obter no OSRM:
-
-- geometria pelas ruas;
-- distância de cada trecho;
-- distância total;
-- duração estimada.
-
-Se o OSRM estiver indisponível, a aplicação mantém a rota com geometria local e distâncias calculadas pela fórmula de Haversine. Os algoritmos continuam funcionando sem internet, mas o fundo cartográfico depende dos tiles do OpenStreetMap.
-
-## Animação
-
-A rota desenhada e a animação utilizam a mesma sequência de coordenadas. Um `javax.swing.Timer` atualiza o veículo aproximadamente a cada 16 ms. A posição considera o tempo transcorrido e a velocidade selecionada, enquanto a orientação é calculada pela direção do segmento atual.
-
-## Tecnologias
-
-- Java 21;
-- Java Swing;
-- JXMapViewer2 2.8;
-- OpenStreetMap;
-- OSRM;
-- arquivos CSV para os dados iniciais;
-- Nimbus Look and Feel com componentes visuais próprios.
-
-## Requisitos
+### Requisitos
 
 - JDK 21 ou superior;
-- ambiente gráfico para abrir o Swing;
-- internet para carregar o mapa e consultar o OSRM;
-- Visual Studio Code e **Extension Pack for Java**, opcionalmente.
+- ambiente gráfico para executar a interface Swing;
+- internet para carregar o mapa e obter trajetos viários do OSRM.
 
-Verifique o Java:
+Confira a instalação do Java:
 
 ```bash
 java -version
 javac -version
 ```
 
-## Estrutura do projeto
-
-```text
-.
-├── src/
-│   ├── Main.java
-│   ├── algoritmos/          # Dijkstra, Prim, Kruskal, BFS, DFS, Guloso, TSP e VRP
-│   ├── gui/                 # Janelas, controladores visuais, mapa e animação
-│   │   └── components/      # Componentes Swing reutilizáveis
-│   ├── model/               # Grafo, pontos, arestas, rotas e veículos
-│   ├── services/            # Dados, projetos, simulação e integração OSRM
-│   └── util/                # Geometria, distâncias e exportadores
-├── dados/
-│   ├── vertices.csv
-│   └── edges.csv
-├── lib/
-│   ├── jxmapviewer2-2.8.jar
-│   └── commons-logging-1.3.0.jar
-├── tests/
-│   ├── RouteSmokeTest.java
-│   └── OsrmIntegrationTest.java
-├── docs/
-│   ├── telas-e-comparativo-algoritmos.md
-│   └── prints/              # 19 capturas reais da aplicação
-├── .vscode/                 # Build, execução e configuração do Java
-└── README.md
-```
-
-## Executar pelo VS Code
-
-1. Abra a pasta raiz do projeto.
-2. Execute `Ctrl+Shift+B` para compilar em `bin/`.
-3. Abra `src/Main.java`.
-4. Pressione `F5` e escolha **Executar Main**.
-
-As configurações estão em `.vscode/tasks.json` e `.vscode/launch.json`.
-
-## Executar pelo terminal
-
 ### Linux
+
+Na raiz do projeto, execute:
 
 ```bash
 mkdir -p bin
@@ -159,13 +75,128 @@ javac --release 21 -encoding UTF-8 -cp "lib/*" -d bin $sources
 java -cp "bin;lib/*" Main
 ```
 
+### Visual Studio Code
+
+1. Instale o **Extension Pack for Java**.
+2. Abra a pasta raiz do projeto.
+3. Pressione `Ctrl+Shift+B` para compilar em `bin/`.
+4. Abra `src/Main.java`, pressione `F5` e escolha **Executar Main**.
+
+As configurações de compilação e execução estão em [`.vscode/tasks.json`](.vscode/tasks.json) e [`.vscode/launch.json`](.vscode/launch.json).
+
+## Como usar
+
+1. Inicie a aplicação.
+2. Escolha um algoritmo na barra superior.
+3. Clique em **Calcular**.
+4. Selecione os pontos e, quando solicitado, a origem, o destino ou o ponto inicial.
+5. Consulte o percurso, as estatísticas e o resumo no painel lateral.
+6. Ajuste a velocidade e use **Iniciar**, **Pausar**, **Parar** ou **Limpar** para controlar a simulação.
+
+### Marcadores do mapa
+
+| Marcador | Significado |
+|:---:|---|
+| E | Escola |
+| U | Universidade |
+| B | Bairro |
+| P | Ponto de embarque |
+| S | Início da rota |
+| D | Destino |
+
+## Algoritmos
+
+| Algoritmo | Resultado | Uso no sistema |
+|---|---|---|
+| Dijkstra | Menor caminho entre dois pontos | Rota entre origem e destino |
+| Prim | Árvore geradora mínima a partir de uma origem | Conexão de todos os pontos selecionados |
+| Kruskal | Árvore geradora mínima pela ordenação das arestas | Conexão global de menor peso |
+| BFS | Percurso em largura | Visita por níveis de proximidade no grafo |
+| DFS | Percurso em profundidade | Exploração completa de cada ramo |
+| Guloso | Rota aproximada | Priorização de distância, demanda e prioridade |
+| TSP simplificado | Ordem heurística de visitas | Percurso curto por várias paradas |
+
+A classe `VRP` também está implementada na camada de algoritmos para distribuir pontos entre múltiplos veículos, mas ainda não está disponível na barra principal da interface.
+
+Quando o resultado de um algoritmo contém mudanças entre vértices não adjacentes, o sistema expande esses trechos em caminhos existentes no grafo. Isso mantém o desenho e a animação contínuos.
+
+Para uma explicação mais detalhada, resultados medidos e capturas de cada algoritmo, consulte o [comparativo completo](docs/telas-e-comparativo-algoritmos.md).
+
+## Mapas, rotas e modo offline
+
+O mapa é exibido com JXMapViewer2 e tiles do OpenStreetMap. Depois do cálculo do algoritmo, a aplicação consulta o OSRM para obter:
+
+- geometria do percurso pelas ruas;
+- distância de cada trecho e distância total;
+- duração estimada da viagem.
+
+Se o OSRM não responder, o sistema usa uma geometria local e calcula as distâncias com a fórmula de Haversine. Os algoritmos, o desenho simplificado e a simulação continuam funcionando; apenas o fundo cartográfico depende dos tiles do OpenStreetMap.
+
+A animação usa um `javax.swing.Timer` atualizado aproximadamente a cada 16 ms. A posição considera o tempo transcorrido e a velocidade selecionada, e a orientação acompanha a direção do segmento atual.
+
+## Base de dados
+
+O cadastro inicial é montado pelo `DadosIniciaisService`, que usa [`dados/vertices.csv`](dados/vertices.csv) para atualizar os registros correspondentes. As conexões do grafo são geradas em tempo de execução a partir da distância geográfica e de ligações-base; [`dados/edges.csv`](dados/edges.csv) permanece no repositório como conjunto de referência. As coordenadas usam o sistema WGS84, e o mapa inicia centralizado aproximadamente em `-12.6723, -39.1054`.
+
+| Informação | Quantidade |
+|---|---:|
+| Pontos cadastrados | 36 |
+| Escolas | 18 |
+| Universidades | 1 |
+| Bairros | 14 |
+| Pontos de embarque | 3 |
+| Arestas | 349 |
+| Alunos | 1.500 |
+
+## Tecnologias
+
+- Java 21 e Java Swing;
+- JXMapViewer2 2.8;
+- OpenStreetMap e OSRM;
+- arquivos CSV para os dados iniciais;
+- Nimbus Look and Feel e componentes visuais próprios.
+
+As dependências são carregadas localmente:
+
+| Biblioteca | Finalidade |
+|---|---|
+| `jxmapviewer2-2.8.jar` | Exibição e navegação do mapa |
+| `commons-logging-1.3.0.jar` | Logging usado pelo visualizador |
+
+## Estrutura do projeto
+
+```text
+.
+├── src/
+│   ├── Main.java
+│   ├── algoritmos/          # Dijkstra, Prim, Kruskal, BFS, DFS, Guloso, TSP e VRP
+│   ├── gui/                 # Janelas, controladores, mapa e animação
+│   │   └── components/      # Componentes Swing reutilizáveis
+│   ├── model/               # Grafo, pontos, arestas, rotas e veículos
+│   ├── services/            # Dados, projetos, simulação e integração OSRM
+│   └── util/                # Geometria, distâncias e exportadores
+├── dados/                   # Base inicial em CSV
+├── lib/                     # Dependências JAR locais
+├── tests/                   # Testes executáveis sem framework externo
+├── docs/                    # Relatório visual e capturas da interface
+├── .vscode/                 # Configuração de build e execução
+└── README.md
+```
+
 ## Testes
+
+Compile primeiro a aplicação conforme a seção [Início rápido](#início-rápido). Em seguida, compile e execute os testes.
 
 ### Linux
 
 ```bash
 javac --release 21 -encoding UTF-8 -cp "bin:lib/*" -d bin $(find tests -name "*.java")
 java -ea -cp "bin:lib/*" RouteSmokeTest
+```
+
+Teste opcional com acesso à internet:
+
+```bash
 java -ea -cp "bin:lib/*" OsrmIntegrationTest
 ```
 
@@ -178,71 +209,50 @@ java -ea -cp "bin;lib/*" RouteSmokeTest
 java -ea -cp "bin;lib/*" OsrmIntegrationTest
 ```
 
-- `RouteSmokeTest` valida dados padrão, coordenadas, conectividade, algoritmos e continuidade das rotas.
-- `OsrmIntegrationTest` valida uma resposta real do OSRM e necessita de internet.
+- `RouteSmokeTest` valida a base padrão, as coordenadas, os algoritmos e a continuidade das rotas. Não requer internet.
+- `OsrmIntegrationTest` consulta uma resposta real do OSRM e, portanto, requer internet.
 
-## Uso básico
+## Documentação
 
-1. Inicie a aplicação.
-2. Selecione um algoritmo na barra superior.
-3. Clique em **Calcular**.
-4. Escolha os pontos e o ponto inicial quando solicitado.
-5. Consulte a rota, as estatísticas e o resumo no painel lateral.
-6. Ajuste a velocidade.
-7. Use **Iniciar**, **Pausar**, **Parar** ou **Limpar**.
+- [Telas do sistema e comparativo dos algoritmos](docs/telas-e-comparativo-algoritmos.md)
+- [Capturas da interface](docs/prints/)
 
-## Legenda dos marcadores
-
-| Marcador | Significado |
-|:---:|---|
-| E | Escola |
-| U | Universidade |
-| B | Bairro |
-| P | Ponto de embarque |
-| S | Início da rota |
-| D | Destino |
-
-## Documentação e prints
-
-- [Telas e comparativo dos algoritmos](docs/telas-e-comparativo-algoritmos.md);
-- [pasta com os 19 prints da interface](docs/prints/).
-
-O relatório contém capturas da tela principal, gerenciamento e formulário de pontos, seleções de rota, exportação, resumo ampliado, simulação e resultado visual de cada algoritmo.
+A documentação complementar apresenta os fluxos de cadastro, seleção, exportação e simulação, além dos resultados visuais e do quadro comparativo dos sete algoritmos disponíveis na interface.
 
 ## Solução de problemas
 
 ### `package org.jxmapviewer... does not exist`
 
-Confirme a existência de:
+Confirme que estes arquivos existem:
 
 ```text
 lib/jxmapviewer2-2.8.jar
 lib/commons-logging-1.3.0.jar
 ```
 
-No VS Code, execute:
-
-1. `Java: Clean Java Language Server Workspace`;
-2. **Restart and delete**;
-3. aguarde a reimportação do projeto.
+No VS Code, execute `Java: Clean Java Language Server Workspace`, escolha **Restart and delete** e aguarde a reimportação do projeto.
 
 ### O mapa não aparece
 
-Verifique a conexão com a internet. Os cálculos continuam funcionando, mas os tiles do OpenStreetMap não são exibidos offline.
+Verifique a conexão com a internet. Os cálculos continuam disponíveis, mas os tiles do OpenStreetMap não são exibidos offline.
 
-### A rota usa aproximação local
+### A rota usa uma aproximação local
 
-O OSRM não respondeu dentro do tempo configurado. Verifique a conexão e calcule novamente. A rota local continua válida para visualização e simulação.
+O OSRM não respondeu dentro do tempo configurado. Verifique a conexão e calcule novamente. O fallback local continua disponível para visualização e simulação.
 
-### Caracteres acentuados incorretos
+### A aplicação informa que precisa de um ambiente gráfico
 
-Compile com `-encoding UTF-8`, conforme os comandos deste README.
+O Java foi iniciado em um terminal sem servidor gráfico, como uma sessão SSH ou um contêiner headless. Execute o programa em um ambiente desktop com suporte a janelas Swing.
 
-## Dependências locais
+### Os caracteres acentuados aparecem incorretamente
 
-| Biblioteca | Finalidade |
-|---|---|
-| `jxmapviewer2-2.8.jar` | Exibição e navegação do mapa |
-| `commons-logging-1.3.0.jar` | Logging utilizado pelo visualizador |
+Compile com `-encoding UTF-8`, como nos comandos deste README.
 
-As dependências são carregadas localmente a partir de `lib/`.
+## Autores
+
+- Benjamin da Conceição Neves Cardoso
+- Caio Conceição dos Santos
+- Daniel Bezerra Medeiros de Souza
+- Daniel José Cerqueira Brito
+- Jessé dos Santos Nery
+- João Pedro Carneiro da Silva
