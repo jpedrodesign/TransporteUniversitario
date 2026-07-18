@@ -3,7 +3,6 @@ package gui;
 import java.awt.Component;
 import java.awt.Dimension;
 import java.awt.Font;
-import java.awt.Color;
 import java.awt.event.ActionListener;
 
 import javax.swing.BorderFactory;
@@ -13,6 +12,7 @@ import javax.swing.JButton;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
 import javax.swing.JProgressBar;
+import gui.components.ModernButton;
 
 /**
  * Painel lateral com botões de controle.
@@ -131,7 +131,7 @@ public class ControlPanel extends JPanel {
     }
 
     private JButton criarBotao(String texto, Dimension tamanho, Font fonte) {
-        JButton btn = new RoundedButton(texto, new Color(234, 239, 245), UiTheme.TEXT);
+        JButton btn = new ModernButton(texto, null, ModernButton.Variant.SECONDARY);
         btn.setMaximumSize(new Dimension(Integer.MAX_VALUE, tamanho.height));
         btn.setPreferredSize(tamanho);
         btn.setMinimumSize(new Dimension(tamanho.width, tamanho.height));

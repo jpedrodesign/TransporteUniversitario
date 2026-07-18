@@ -19,7 +19,7 @@ import model.Rota;
  * Painel de estatísticas exibindo métricas da rota.
  */
 @SuppressWarnings({"serial", "this-escape"})
-public class StatisticsPanel extends JPanel {
+public class StatisticsPanel extends gui.components.ModernCard {
 
     private final JLabel lblNumeroPontos;
     private final JLabel lblTotalAlunos;
@@ -30,16 +30,16 @@ public class StatisticsPanel extends JPanel {
     private final JLabel lblAlgoritmo;
 
     public StatisticsPanel() {
-        setLayout(new BoxLayout(this, BoxLayout.Y_AXIS));
-        UiTheme.card(this, "Estatísticas");
+        super("Estatísticas");
+        content().setLayout(new BoxLayout(content(), BoxLayout.Y_AXIS));
 
-        Font fonteTitulo = new Font("SansSerif", Font.BOLD, 14);
-        Font fonteValor = new Font("SansSerif", Font.PLAIN, 13);
+        Font fonteTitulo = UiTheme.FONT_BOLD.deriveFont(12f);
+        Font fonteValor = UiTheme.FONT.deriveFont(12f);
 
         lblAlgoritmo = criarLinha("Algoritmo:", "-", fonteTitulo, fonteValor);
-        add(Box.createVerticalStrut(5));
-        add(new JSeparator());
-        add(Box.createVerticalStrut(5));
+        content().add(Box.createVerticalStrut(5));
+        content().add(new JSeparator());
+        content().add(Box.createVerticalStrut(5));
 
         lblNumeroPontos = criarLinha("Nº de Pontos:", "0", fonteTitulo, fonteValor);
         lblTotalAlunos = criarLinha("Estudantes:", "0", fonteTitulo, fonteValor);
@@ -53,7 +53,7 @@ public class StatisticsPanel extends JPanel {
                                Font fonteRotulo, Font fonteValor) {
         JPanel linha = new JPanel(new BorderLayout());
         linha.setBackground(UiTheme.SURFACE);
-        linha.setMaximumSize(new Dimension(250, 25));
+        linha.setMaximumSize(new Dimension(Integer.MAX_VALUE, UiTheme.scale(21)));
 
         JLabel lblRotulo = new JLabel(rotulo);
         lblRotulo.setFont(fonteRotulo);
@@ -65,7 +65,7 @@ public class StatisticsPanel extends JPanel {
         lblValor.setForeground(UiTheme.TEXT);
         linha.add(lblValor, BorderLayout.EAST);
 
-        add(linha);
+        content().add(linha);
         return lblValor;
     }
 

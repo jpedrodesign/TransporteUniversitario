@@ -2,7 +2,7 @@ id,nome,tipo,latitude,longitude,estudantes
 E1,CEAT - Centro Educacional Alberto Torres,ESCOLA,-12.6616899,-39.0993240,420
 E2,Colégio Montessori,ESCOLA,-12.6691435,-39.1013517,260
 E3,Centro Educacional Cruzalmense,ESCOLA,-12.6685736,-39.1060494,310
-U1,UFRB - Universidade Federal do Recôncavo da Bahia,UNIVERSIDADE,-12.6631654,-39.0799470,1800
+U1,UFRB - Universidade Federal do Recôncavo da Bahia,UNIVERSIDADE,-12.659571444207714, -39.08442200153332,1800
 B1,INOCOOP,BAIRRO,-12.6576407,-39.1034474,95
 B2,Tabela,BAIRRO,-12.6517875,-39.0996903,70
 B3,Itapicuru,BAIRRO,-12.6562736,-39.1185154,60

@@ -18,13 +18,21 @@ public class Main {
             return;
         }
 
-        // Tema nativo do sistema
+        // Look & Feel consistente: evita que temas escuros do sistema vazem para
+        // formulários que usam a identidade visual clara da aplicação.
         try {
-            UIManager.setLookAndFeel(UIManager.getSystemLookAndFeelClassName());
+            UIManager.setLookAndFeel("javax.swing.plaf.nimbus.NimbusLookAndFeel");
         } catch (ClassNotFoundException
                  | InstantiationException
                  | IllegalAccessException
-                 | UnsupportedLookAndFeelException ignored) {
+                 | UnsupportedLookAndFeelException ex) {
+            try {
+                UIManager.setLookAndFeel(UIManager.getCrossPlatformLookAndFeelClassName());
+            } catch (ClassNotFoundException
+                     | InstantiationException
+                     | IllegalAccessException
+                     | UnsupportedLookAndFeelException ignored) {
+            }
         }
         UiTheme.aplicar();
 

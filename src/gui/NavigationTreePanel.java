@@ -21,14 +21,13 @@ import java.util.function.Consumer;
 import java.util.stream.Collectors;
 
 @SuppressWarnings({"serial", "this-escape"})
-public class NavigationTreePanel extends JPanel {
+public class NavigationTreePanel extends gui.components.ModernCard {
 
     private final JTree tree;
     private Consumer<Ponto> onSelecionado;
 
     public NavigationTreePanel() {
-        setLayout(new BorderLayout());
-        UiTheme.card(this, "Pontos cadastrados");
+        super("Pontos cadastrados");
         tree = new JTree(new DefaultMutableTreeNode("Carregando..."));
         tree.setBackground(UiTheme.SURFACE);
         tree.setRowHeight(24);
@@ -43,7 +42,7 @@ public class NavigationTreePanel extends JPanel {
         tree.addTreeSelectionListener(this::selecionar);
         JScrollPane scroll = new JScrollPane(tree);
         scroll.setBorder(BorderFactory.createEmptyBorder());
-        add(scroll, BorderLayout.CENTER);
+        content().add(scroll, BorderLayout.CENTER);
     }
 
     public void setOnSelecionado(Consumer<Ponto> onSelecionado) {

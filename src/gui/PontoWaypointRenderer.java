@@ -101,7 +101,7 @@ public class PontoWaypointRenderer implements WaypointRenderer<PontoWaypoint> {
             g2.setColor(Color.WHITE);
             g2.setStroke(new BasicStroke(2f));
             g2.draw(new Ellipse2D.Double(x - size / 2.0, y - size / 2.0, size, size));
-            g2.setFont(new Font("SansSerif", Font.BOLD, 10));
+            g2.setFont(UiTheme.FONT_BOLD.deriveFont(10f));
             FontMetrics fm = g2.getFontMetrics();
             g2.drawString(text, x - fm.stringWidth(text) / 2, y + fm.getAscent() / 2 - 1);
             g2.dispose();

@@ -13,7 +13,7 @@ import java.awt.Color;
 import java.util.List;
 
 @SuppressWarnings({"serial", "this-escape"})
-public class DetailsPanel extends JPanel {
+public class DetailsPanel extends gui.components.ModernCard {
 
     private final JLabel nome = new JLabel("-");
     private final JLabel tipo = new JLabel("-");
@@ -28,8 +28,7 @@ public class DetailsPanel extends JPanel {
     private final JLabel capacidade = new JLabel("-");
 
     public DetailsPanel() {
-        setLayout(new BoxLayout(this, BoxLayout.Y_AXIS));
-        UiTheme.card(this, "Detalhes do ponto");
+        super("Detalhes do ponto");
 
         JPanel grid = new JPanel(new GridLayout(0, 2, 6, 6));
         grid.setBackground(UiTheme.SURFACE);
@@ -44,7 +43,7 @@ public class DetailsPanel extends JPanel {
         adicionarLinha(grid, "Tempo medio", tempoMedio);
         adicionarLinha(grid, "Prioridade", prioridade);
         adicionarLinha(grid, "Capacidade", capacidade);
-        add(grid);
+        content().add(grid);
         setPreferredSize(new Dimension(260, 0));
     }
 

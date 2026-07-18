@@ -14,14 +14,8 @@ import org.jxmapviewer.viewer.DefaultTileFactory;
 import org.jxmapviewer.viewer.DefaultWaypoint;
 import org.jxmapviewer.viewer.GeoPosition;
 
-import javax.swing.Box;
-import javax.swing.BoxLayout;
-import javax.swing.JButton;
-import javax.swing.Icon;
-import javax.swing.JLabel;
 import javax.swing.JLayeredPane;
 import javax.swing.JPanel;
-import javax.swing.JToggleButton;
 import javax.swing.ToolTipManager;
 import javax.swing.event.MouseInputListener;
 import java.awt.BorderLayout;
@@ -29,9 +23,9 @@ import java.awt.Color;
 import java.awt.Dimension;
 import java.awt.Font;
 import java.awt.FontMetrics;
-import java.awt.Graphics;
 import java.awt.Graphics2D;
-import java.awt.Component;
+import java.awt.GridBagConstraints;
+import java.awt.GridBagLayout;
 import java.awt.Point;
 import java.awt.RenderingHints;
 import java.awt.event.MouseAdapter;
@@ -47,15 +41,17 @@ import java.util.Map;
 import java.util.LinkedHashSet;
 import javax.swing.SwingUtilities;
 import java.util.function.Consumer;
+import gui.components.AppIcon;
+import gui.components.ModernButton;
+import gui.components.ModernLegend;
+import gui.components.ModernToolbar;
 
 @SuppressWarnings({"serial", "this-escape"})
 public class MapPanel extends JPanel {
 
     private final JXMapViewer mapViewer = new JXMapViewer();
     private final Map<Ponto, PontoWaypoint> waypoints = new LinkedHashMap<>();
-    private final Map<TipoPonto, JToggleButton> botoesLegenda = new LinkedHashMap<>();
-    private JPanel corpoLegenda;
-    private JButton minimizarLegenda;
+    private final ModernLegend legend = new ModernLegend();
     private final List<Aresta> arestasAtuais = new ArrayList<>();
     private Consumer<Ponto> onPontoSelecionado;
     private Consumer<TipoPonto> onTipoLegendaAlternado;
@@ -76,7 +72,9 @@ public class MapPanel extends JPanel {
     public MapPanel() {
         setLayout(new BorderLayout());
         setPreferredSize(new Dimension(800, 600));
-        setBorder(javax.swing.BorderFactory.createLineBorder(UiTheme.BORDER));
+        setBorder(javax.swing.BorderFactory.createCompoundBorder(
+                javax.swing.BorderFactory.createLineBorder(UiTheme.BORDER_STRONG),
+                javax.swing.BorderFactory.createEmptyBorder(1, 1, 1, 1)));
         setBackground(UiTheme.SURFACE);
 
         mapViewer.setTileFactory(new DefaultTileFactory(new SecureOSMTileFactoryInfo()));
@@ -109,137 +107,46 @@ public class MapPanel extends JPanel {
         mapViewer.addMouseMotionListener(pontoListener);
 
         ToolTipManager.sharedInstance().registerComponent(mapViewer);
-        JPanel legenda = criarLegendaDeMapa();
-        JLayeredPane mapaComLegenda = new JLayeredPane() {
-            @Override
-            public void doLayout() {
-                Dimension size = getSize();
-                mapViewer.setBounds(0, 0, size.width, size.height);
-                Dimension pref = legenda.getPreferredSize();
-                int x = 12;
-                int y = Math.max(12, size.height - pref.height - 12);
-                legenda.setBounds(x, y, pref.width, pref.height);
-            }
-        };
-        mapaComLegenda.add(mapViewer, JLayeredPane.DEFAULT_LAYER);
-        mapaComLegenda.add(legenda, JLayeredPane.PALETTE_LAYER);
+        legend.setOnToggle(tipo -> { if (onTipoLegendaAlternado != null) onTipoLegendaAlternado.accept(tipo); });
+        JLayeredPane mapaComLegenda = new JLayeredPane();
+        mapaComLegenda.setLayout(new GridBagLayout());
+        GridBagConstraints map = new GridBagConstraints();
+        map.gridx = 0; map.gridy = 0; map.weightx = 1; map.weighty = 1; map.fill = GridBagConstraints.BOTH;
+        mapaComLegenda.add(mapViewer, map);
+        mapaComLegenda.setLayer(mapViewer, JLayeredPane.DEFAULT_LAYER);
+        GridBagConstraints legendConstraints = new GridBagConstraints();
+        legendConstraints.gridx = 0; legendConstraints.gridy = 0; legendConstraints.weightx = 1; legendConstraints.weighty = 1;
+        legendConstraints.anchor = GridBagConstraints.SOUTHWEST;
+        legendConstraints.insets = UiTheme.scaledInsets(0, 14, 14, 0);
+        mapaComLegenda.add(legend, legendConstraints);
+        mapaComLegenda.setLayer(legend, JLayeredPane.PALETTE_LAYER);
+        GridBagConstraints tools = new GridBagConstraints();
+        tools.gridx = 0; tools.gridy = 0; tools.weightx = 1; tools.weighty = 1; tools.anchor = GridBagConstraints.NORTHEAST;
+        tools.insets = UiTheme.scaledInsets(14, 0, 0, 14);
+        JPanel mapTools = criarFerramentasMapa();
+        mapaComLegenda.add(mapTools, tools);
+        mapaComLegenda.setLayer(mapTools, JLayeredPane.PALETTE_LAYER);
         add(mapaComLegenda, BorderLayout.CENTER);
         atualizarPaineis();
     }
 
-    private JPanel criarLegendaDeMapa() {
-        JPanel container = new JPanel(new BorderLayout(6, 4));
-        container.setBackground(new Color(255, 255, 255, 238));
-        container.setBorder(javax.swing.BorderFactory.createCompoundBorder(
-                javax.swing.BorderFactory.createLineBorder(new Color(175, 182, 190)),
-                javax.swing.BorderFactory.createEmptyBorder(7, 8, 8, 8)));
-
-        JPanel topo = new JPanel(new BorderLayout(8, 0));
-        topo.setOpaque(false);
-        JLabel titulo = new JLabel("Legenda");
-        titulo.setFont(UiTheme.FONT_BOLD.deriveFont(12f));
-        titulo.setForeground(new Color(40, 45, 52));
-        minimizarLegenda = new RoundedButton("-", new Color(234, 239, 245), UiTheme.TEXT);
-        minimizarLegenda.setFont(UiTheme.FONT_BOLD.deriveFont(11f));
-        minimizarLegenda.setMargin(UiTheme.scaledInsets(0, 6, 0, 6));
-        minimizarLegenda.setFocusable(false);
-        minimizarLegenda.setToolTipText("Minimizar legenda");
-        minimizarLegenda.addActionListener(e -> alternarLegenda());
-        topo.add(titulo, BorderLayout.WEST);
-        topo.add(minimizarLegenda, BorderLayout.EAST);
-
-        corpoLegenda = new JPanel();
-        corpoLegenda.setOpaque(false);
-        corpoLegenda.setLayout(new BoxLayout(corpoLegenda, BoxLayout.Y_AXIS));
-        adicionarTituloGrupo(corpoLegenda, "Pontos");
-        adicionarBotaoLegenda(corpoLegenda, TipoPonto.ESCOLA, "E", "Escola", new Color(210, 50, 50));
-        adicionarBotaoLegenda(corpoLegenda, TipoPonto.UNIVERSIDADE, "U", "Universidade", new Color(45, 90, 220));
-        adicionarBotaoLegenda(corpoLegenda, TipoPonto.BAIRRO, "B", "Bairro", new Color(190, 140, 30));
-        adicionarBotaoLegenda(corpoLegenda, TipoPonto.PONTO_EMBARQUE, "P", "Ponto de embarque", new Color(50, 160, 70));
-        corpoLegenda.add(Box.createVerticalStrut(4));
-        adicionarTituloGrupo(corpoLegenda, "Rota");
-        adicionarItemLegenda(corpoLegenda, "S", "Inicio da rota", new Color(40, 120, 220));
-        adicionarItemLegenda(corpoLegenda, "D", "Destino", new Color(230, 60, 60));
-
-        container.add(topo, BorderLayout.NORTH);
-        container.add(corpoLegenda, BorderLayout.CENTER);
-        return container;
+    private JPanel criarFerramentasMapa() {
+        ModernToolbar toolbar = new ModernToolbar();
+        toolbar.setLayout(new javax.swing.BoxLayout(toolbar, javax.swing.BoxLayout.Y_AXIS));
+        ModernButton zoomIn = mapButton(AppIcon.Kind.PLUS, "Aproximar mapa");
+        ModernButton zoomOut = mapButton(AppIcon.Kind.MINUS, "Afastar mapa");
+        ModernButton center = mapButton(AppIcon.Kind.TARGET, "Centralizar em Cruz das Almas");
+        zoomIn.addActionListener(e -> mapViewer.setZoom(Math.max(0, mapViewer.getZoom() - 1)));
+        zoomOut.addActionListener(e -> mapViewer.setZoom(Math.min(15, mapViewer.getZoom() + 1)));
+        center.addActionListener(e -> centralizarCruzDasAlmas());
+        toolbar.add(zoomIn); toolbar.add(javax.swing.Box.createVerticalStrut(UiTheme.scale(6)));
+        toolbar.add(zoomOut); toolbar.add(javax.swing.Box.createVerticalStrut(UiTheme.scale(6))); toolbar.add(center);
+        return toolbar;
     }
 
-    private void adicionarTituloGrupo(JPanel legenda, String texto) {
-        JLabel label = new JLabel(texto);
-        label.setAlignmentX(Component.LEFT_ALIGNMENT);
-        label.setFont(UiTheme.FONT_BOLD.deriveFont(10f));
-        label.setForeground(new Color(60, 68, 78));
-        legenda.add(label);
-    }
-
-    private void alternarLegenda() {
-        boolean expandida = corpoLegenda.isVisible();
-        corpoLegenda.setVisible(!expandida);
-        minimizarLegenda.setText(expandida ? "+" : "-");
-        minimizarLegenda.setToolTipText(expandida ? "Expandir legenda" : "Minimizar legenda");
-        revalidate();
-        if (getParent() != null) {
-            getParent().doLayout();
-        }
-        repaint();
-    }
-
-    private void adicionarBotaoLegenda(JPanel legenda, TipoPonto tipo, String letra, String texto, Color cor) {
-        JToggleButton item = new JToggleButton(texto, true);
-        item.setIcon(new LegendaIcon(cor, letra));
-        item.setHorizontalAlignment(JToggleButton.LEFT);
-        item.setFocusPainted(true);
-        item.setOpaque(true);
-        item.setContentAreaFilled(true);
-        item.setBackground(UiTheme.SURFACE);
-        item.setForeground(new Color(35, 42, 50));
-        item.setFont(UiTheme.FONT_BOLD.deriveFont(10f));
-        item.setMargin(UiTheme.scaledInsets(2, 6, 2, 6));
-        item.setBorder(javax.swing.BorderFactory.createCompoundBorder(
-                javax.swing.BorderFactory.createLineBorder(UiTheme.BORDER),
-                javax.swing.BorderFactory.createEmptyBorder(2, 4, 2, 4)));
-        item.setAlignmentX(Component.LEFT_ALIGNMENT);
-        item.setToolTipText("Mostrar ou ocultar " + texto.toLowerCase());
-        item.addActionListener(e -> {
-            atualizarVisualBotaoLegenda(item, cor);
-            if (onTipoLegendaAlternado != null) {
-                onTipoLegendaAlternado.accept(tipo);
-            }
-        });
-        atualizarVisualBotaoLegenda(item, cor);
-        botoesLegenda.put(tipo, item);
-        legenda.add(item);
-    }
-
-    private void adicionarItemLegenda(JPanel legenda, String letra, String texto, Color cor) {
-        JLabel item = new JLabel(texto, new LegendaIcon(cor, letra), JLabel.LEFT);
-        item.setForeground(new Color(35, 42, 50));
-        item.setFont(UiTheme.FONT.deriveFont(10f));
-        item.setBorder(javax.swing.BorderFactory.createEmptyBorder(1, 0, 1, 0));
-        item.setAlignmentX(Component.LEFT_ALIGNMENT);
-        legenda.add(item);
-    }
-
-    private void atualizarVisualBotaoLegenda(JToggleButton item, Color corAtiva) {
-        if (item.isSelected()) {
-            item.setIcon(new LegendaIcon(corAtiva, textoDoTipoLegenda(item.getText())));
-            item.setForeground(new Color(28, 35, 43));
-            item.setBackground(new Color(237, 244, 252));
-        } else {
-            item.setIcon(new LegendaIcon(new Color(200, 205, 211), textoDoTipoLegenda(item.getText())));
-            item.setForeground(new Color(90, 98, 108));
-            item.setBackground(UiTheme.SURFACE);
-        }
-    }
-
-    private String textoDoTipoLegenda(String texto) {
-        if ("Escola".equals(texto)) return "E";
-        if ("Universidade".equals(texto)) return "U";
-        if ("Bairro".equals(texto)) return "B";
-        if ("Ponto de embarque".equals(texto)) return "P";
-        return "?";
+    private ModernButton mapButton(AppIcon.Kind icon, String tooltip) {
+        ModernButton button = new ModernButton("", icon, ModernButton.Variant.SECONDARY, true);
+        button.setPreferredSize(UiTheme.scaledSize(38, 38)); button.setToolTipText(tooltip); return button;
     }
 
     public void setOnPontoSelecionado(Consumer<Ponto> callback) {
@@ -251,11 +158,7 @@ public class MapPanel extends JPanel {
     }
 
     public void setTipoLegendaVisivel(TipoPonto tipo, boolean visivel) {
-        JToggleButton botao = botoesLegenda.get(tipo);
-        if (botao != null) {
-            botao.setSelected(visivel);
-            atualizarVisualBotaoLegenda(botao, corDoTipo(tipo));
-        }
+        legend.setTypeVisible(tipo, visivel);
     }
 
     public void selecionarPonto(Ponto ponto) {
@@ -456,7 +359,7 @@ public class MapPanel extends JPanel {
                 g2.draw(new Ellipse2D.Double(x0, y0, size, size));
 
                 String texto = textoDoPonto(ponto, ehOrigem, ehDestino);
-                g2.setFont(new Font("SansSerif", Font.BOLD, 10));
+                g2.setFont(UiTheme.FONT_BOLD.deriveFont(10f));
                 FontMetrics fm = g2.getFontMetrics();
                 int tx = (int) Math.round(x - fm.stringWidth(texto) / 2.0);
                 int ty = (int) Math.round(y + fm.getAscent() / 2.0 - 1);
@@ -504,40 +407,4 @@ public class MapPanel extends JPanel {
         }
     }
 
-    private static class LegendaIcon implements Icon {
-        private final Color cor;
-        private final String letra;
-
-        private LegendaIcon(Color cor, String letra) {
-            this.cor = cor;
-            this.letra = letra;
-        }
-
-        @Override
-        public int getIconWidth() {
-            return 22;
-        }
-
-        @Override
-        public int getIconHeight() {
-            return 20;
-        }
-
-        @Override
-        public void paintIcon(Component c, Graphics g, int x, int y) {
-            Graphics2D g2 = (Graphics2D) g.create();
-            g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
-            g2.setColor(cor);
-            g2.fill(new Ellipse2D.Double(x + 1, y + 1, 16, 16));
-            g2.setColor(Color.WHITE);
-            g2.setStroke(new java.awt.BasicStroke(2f));
-            g2.draw(new Ellipse2D.Double(x + 1, y + 1, 16, 16));
-            g2.setFont(new Font("SansSerif", Font.BOLD, 9));
-            FontMetrics fm = g2.getFontMetrics();
-            int tx = x + 1 + (16 - fm.stringWidth(letra)) / 2;
-            int ty = y + 1 + (16 + fm.getAscent()) / 2 - 2;
-            g2.drawString(letra, tx, ty);
-            g2.dispose();
-        }
-    }
 }

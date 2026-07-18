@@ -4,15 +4,27 @@
         {
             "label": "Compilar Java para bin",
             "type": "shell",
-            "command": "$sources = Get-ChildItem -Path '${workspaceFolder}\\src' -Recurse -Filter *.java | ForEach-Object FullName; New-Item -ItemType Directory -Force -Path '${workspaceFolder}\\bin' | Out-Null; javac --release 21 -encoding UTF-8 -cp '${workspaceFolder}\\lib\\*' -d '${workspaceFolder}\\bin' $sources",
+            "command": "bash",
+            "args": [
+                "-lc",
+                "mkdir -p bin && javac --release 21 -encoding UTF-8 -cp \"lib/*\" -d bin $(find src -name \"*.java\")"
+            ],
             "options": {
-                "shell": {
-                    "executable": "powershell.exe",
-                    "args": ["-NoProfile", "-Command"]
-                }
+                "cwd": "${workspaceFolder}"
             },
-            "group": "build",
-            "problemMatcher": "$javac"
+            "windows": {
+                "command": "powershell.exe",
+                "args": [
+                    "-NoProfile",
+                    "-Command",
+                    "$sources = Get-ChildItem -Path src -Recurse -Filter *.java | ForEach-Object FullName; New-Item -ItemType Directory -Force -Path bin | Out-Null; javac --release 21 -encoding UTF-8 -cp 'lib/*' -d bin $sources"
+                ]
+            },
+            "problemMatcher": "$javac",
+            "group": {
+                "kind": "build",
+                "isDefault": true
+            }
         }
     ]
 }

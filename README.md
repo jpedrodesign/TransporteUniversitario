@@ -1,76 +1,104 @@
 # Sistema de Planejamento de Rotas — Cruz das Almas/BA
 
-Trabalho Final da Disciplina Estrutura de Dados
+Aplicação desktop desenvolvida em Java Swing como Trabalho Final da disciplina de Estrutura de Dados. O sistema representa pontos de Cruz das Almas/BA como um grafo, executa algoritmos clássicos, desenha as rotas no mapa e simula o deslocamento de um veículo.
 
-Este projeto foi desenvolvido como Trabalho Final da disciplina Estrutura de Dados, tendo como objetivo aplicar, de forma prática, os principais conceitos estudados durante a disciplina por meio da implementação de uma aplicação desktop em Java.
+O projeto utiliza apenas o JDK e bibliotecas JAR armazenadas em `lib/`. Não depende de Maven, Gradle ou Node.js.
 
-O sistema utiliza a teoria dos grafos para representar a malha viária da cidade de Cruz das Almas – BA, permitindo o cálculo, visualização e simulação de rotas em um mapa real. Durante o desenvolvimento foram aplicados diversos algoritmos clássicos de grafos, estruturas de dados e técnicas de programação orientada a objetos.
+## Interface
 
-Aplicação desktop desenvolvida em Java Swing para estudar grafos, calcular rotas e visualizar o deslocamento de um veículo em um mapa real de Cruz das Almas, Bahia.
+![Tela principal do Sistema de Planejamento de Rotas](docs/prints/tela-principal-mapa.png)
 
-O projeto usa somente o JDK e bibliotecas JAR armazenadas localmente em `lib/`. Não utiliza Maven, Gradle, Node.js ou outro gerenciador de dependências.
+### Rota calculada e painel de informações
+
+![Rota calculada com o TSP simplificado](docs/prints/tela-rota-tsp.png)
+
+A interface possui mapa interativo, legenda, gerenciamento de pontos, seleção de algoritmo, controles de simulação, ajuste de velocidade e um painel lateral redimensionável com estatísticas e resumo da rota.
+
+Consulte [todas as telas e o quadro comparativo dos algoritmos](docs/telas-e-comparativo-algoritmos.md).
+
+## Base padrão
+
+| Informação | Quantidade |
+|---|---:|
+| Pontos cadastrados | 36 |
+| Escolas | 18 |
+| Universidades | 1 |
+| Bairros | 14 |
+| Pontos de embarque | 3 |
+| Arestas | 349 |
+| Alunos | 1500 |
+
+As coordenadas usam o sistema WGS84. A aplicação inicia centralizada em Cruz das Almas, nas coordenadas aproximadas `-12.6723, -39.1054`.
 
 ## Funcionalidades
 
-- mapa do OpenStreetMap exibido com JXMapViewer;
-- abertura centralizada em Cruz das Almas (`-12.6723, -39.1054`), com zoom inicial 4;
-- 14 bairros e 18 escolas com coordenadas WGS84 mapeadas no OpenStreetMap;
-- marcadores distintos para bairros, escolas, universidade e pontos de embarque;
-- cadastro, edição e remoção de pontos;
-- seleção de origem e destino;
-- desenho da rota completa pelas ruas;
-- zoom automático para enquadrar todo o percurso calculado;
-- distância individual entre paradas e quilometragem total;
-- atualização da geometria e da distância após editar coordenadas;
-- animação fluida do veículo sobre a rota;
-- velocidade configurável, pausa e reinício da animação;
-- orientação do veículo de acordo com a direção do movimento;
+- visualização do OpenStreetMap com zoom e movimentação;
+- marcadores distintos para escolas, universidade, bairros e pontos de embarque;
+- legenda interativa com filtros por tipo de ponto;
+- cadastro, pesquisa, edição e remoção de pontos;
+- seleção de todos os pontos ou de um subconjunto para o cálculo;
+- seleção de origem, destino e ponto inicial;
+- desenho da rota com distâncias entre paradas;
+- enquadramento automático do percurso;
+- estatísticas de distância, tempo, alunos, paradas e combustível;
+- resumo textual com a ordem de visita;
+- painel lateral ajustável com `JSplitPane`;
+- animação do veículo com velocidade configurável, pausa e reinício;
 - abertura e salvamento de projetos;
-- exportação de resultados em CSV, TXT e PDF;
-- filtros por tipo de ponto e apresentação de estatísticas.
+- exportação em CSV, TXT e PDF;
+- funcionamento local quando o serviço de rotas viárias estiver indisponível.
 
-## Algoritmos disponíveis
+## Algoritmos
 
-- Dijkstra;
-- Prim;
-- Kruskal;
-- busca em largura (BFS);
-- busca em profundidade (DFS);
-- estratégia gulosa por demanda;
-- Caixeiro Viajante simplificado (TSP);
-- distribuição de rotas entre veículos (VRP, disponível na camada de algoritmos).
+| Algoritmo | Finalidade |
+|---|---|
+| Dijkstra | Menor caminho entre uma origem e um destino |
+| Prim | Árvore geradora mínima a partir de um ponto inicial |
+| Kruskal | Árvore geradora mínima pela ordenação global das arestas |
+| BFS | Percurso do grafo em largura |
+| DFS | Percurso do grafo em profundidade |
+| Guloso | Rota aproximada considerando distância, prioridade e demanda |
+| TSP simplificado | Heurística para ordenar a visita de várias paradas |
 
-Os algoritmos definem a ordem dos pontos. Mudanças entre vértices não adjacentes são expandidas para um caminho contínuo, evitando saltos no desenho e na animação.
+A classe `VRP` também está disponível na camada de algoritmos para distribuição entre múltiplos veículos, mas não aparece na toolbar principal atual.
 
-## Rotas e serviços geográficos
+Para manter o desenho e a animação contínuos, mudanças entre vértices não adjacentes são expandidas para caminhos existentes no grafo.
 
-O sistema envia a sequência calculada ao serviço OSRM, que devolve:
+## Mapas e rotas viárias
 
-- geometria GeoJSON pelas ruas;
-- distância de cada trecho em metros;
+O mapa é fornecido pelo OpenStreetMap por meio do JXMapViewer2. Após o cálculo, o sistema tenta obter no OSRM:
+
+- geometria pelas ruas;
+- distância de cada trecho;
 - distância total;
 - duração estimada.
 
-As distâncias recebidas são convertidas para quilômetros. Se o OSRM estiver indisponível, a aplicação continua funcionando com geometria local e distância calculada pela fórmula de Haversine.
-
-Os tiles do mapa e as coordenadas padrão utilizam dados do OpenStreetMap. Por isso, a visualização do mapa e o trajeto viário completo requerem internet.
+Se o OSRM estiver indisponível, a aplicação mantém a rota com geometria local e distâncias calculadas pela fórmula de Haversine. Os algoritmos continuam funcionando sem internet, mas o fundo cartográfico depende dos tiles do OpenStreetMap.
 
 ## Animação
 
-A animação e o desenho utilizam exatamente a mesma lista de coordenadas da rota. Um `javax.swing.Timer` atualiza o veículo aproximadamente a cada 16 ms.
+A rota desenhada e a animação utilizam a mesma sequência de coordenadas. Um `javax.swing.Timer` atualiza o veículo aproximadamente a cada 16 ms. A posição considera o tempo transcorrido e a velocidade selecionada, enquanto a orientação é calculada pela direção do segmento atual.
 
-O deslocamento é calculado pelo tempo transcorrido e pela velocidade configurada, sem depender da quantidade de frames. A posição é interpolada dentro do segmento atual, e a orientação é obtida com `atan2`. O timer usa coalescência e limita intervalos excessivos para evitar travamentos e saltos após atrasos da interface.
+## Tecnologias
+
+- Java 21;
+- Java Swing;
+- JXMapViewer2 2.8;
+- OpenStreetMap;
+- OSRM;
+- arquivos CSV para os dados iniciais;
+- Nimbus Look and Feel com componentes visuais próprios.
 
 ## Requisitos
 
-- JDK 21 ou superior disponível no `PATH`;
-- Visual Studio Code;
-- extensão **Extension Pack for Java**;
-- internet para OpenStreetMap e OSRM.
+- JDK 21 ou superior;
+- ambiente gráfico para abrir o Swing;
+- internet para carregar o mapa e consultar o OSRM;
+- Visual Studio Code e **Extension Pack for Java**, opcionalmente.
 
-Verifique o Java instalado:
+Verifique o Java:
 
-```powershell
+```bash
 java -version
 javac -version
 ```
@@ -78,14 +106,15 @@ javac -version
 ## Estrutura do projeto
 
 ```text
-Projeto/
+.
 ├── src/
 │   ├── Main.java
-│   ├── algoritmos/    # Algoritmos de grafos e roteamento
-│   ├── gui/           # Interface Swing, mapa e animação
-│   ├── model/         # Grafo, pontos, arestas, rotas e veículos
-│   ├── services/      # Dados, projetos, simulação e OSRM
-│   └── util/          # Distâncias, geometria e exportadores
+│   ├── algoritmos/          # Dijkstra, Prim, Kruskal, BFS, DFS, Guloso, TSP e VRP
+│   ├── gui/                 # Janelas, controladores visuais, mapa e animação
+│   │   └── components/      # Componentes Swing reutilizáveis
+│   ├── model/               # Grafo, pontos, arestas, rotas e veículos
+│   ├── services/            # Dados, projetos, simulação e integração OSRM
+│   └── util/                # Geometria, distâncias e exportadores
 ├── dados/
 │   ├── vertices.csv
 │   └── edges.csv
@@ -95,44 +124,52 @@ Projeto/
 ├── tests/
 │   ├── RouteSmokeTest.java
 │   └── OsrmIntegrationTest.java
-├── bin/               # Classes geradas pelo javac
-├── .vscode/
+├── docs/
+│   ├── telas-e-comparativo-algoritmos.md
+│   └── prints/              # 19 capturas reais da aplicação
+├── .vscode/                 # Build, execução e configuração do Java
 └── README.md
 ```
 
-Os pacotes foram mantidos para separar interface, domínio, algoritmos, serviços e utilitários sem duplicar código.
+## Executar pelo VS Code
 
-## Compilar no terminal do VS Code
+1. Abra a pasta raiz do projeto.
+2. Execute `Ctrl+Shift+B` para compilar em `bin/`.
+3. Abra `src/Main.java`.
+4. Pressione `F5` e escolha **Executar Main**.
 
-Abra a pasta raiz no VS Code e execute no PowerShell:
+As configurações estão em `.vscode/tasks.json` e `.vscode/launch.json`.
+
+## Executar pelo terminal
+
+### Linux
+
+```bash
+mkdir -p bin
+javac --release 21 -encoding UTF-8 -cp "lib/*" -d bin $(find src -name "*.java")
+java -cp "bin:lib/*" Main
+```
+
+### Windows PowerShell
 
 ```powershell
 $sources = Get-ChildItem -Path src -Recurse -Filter *.java | ForEach-Object FullName
 New-Item -ItemType Directory -Force -Path bin | Out-Null
 javac --release 21 -encoding UTF-8 -cp "lib/*" -d bin $sources
-```
-
-Também é possível pressionar `Ctrl+Shift+B` e selecionar **Compilar Java para bin**.
-
-## Executar
-
-Windows/PowerShell:
-
-```powershell
 java -cp "bin;lib/*" Main
 ```
 
-Linux ou macOS:
+## Testes
+
+### Linux
 
 ```bash
-java -cp "bin:lib/*" Main
+javac --release 21 -encoding UTF-8 -cp "bin:lib/*" -d bin $(find tests -name "*.java")
+java -ea -cp "bin:lib/*" RouteSmokeTest
+java -ea -cp "bin:lib/*" OsrmIntegrationTest
 ```
 
-No VS Code, abra `src/Main.java` e pressione `F5` ou use **Run Java**.
-
-## Executar os testes
-
-Depois de compilar a aplicação:
+### Windows PowerShell
 
 ```powershell
 $tests = Get-ChildItem -Path tests -Filter *.java | ForEach-Object FullName
@@ -141,63 +178,71 @@ java -ea -cp "bin;lib/*" RouteSmokeTest
 java -ea -cp "bin;lib/*" OsrmIntegrationTest
 ```
 
-- `RouteSmokeTest` verifica os dados padrão, coordenadas, conectividade, algoritmos e continuidade das rotas.
-- `OsrmIntegrationTest` valida a resposta viária do OSRM e necessita de internet.
+- `RouteSmokeTest` valida dados padrão, coordenadas, conectividade, algoritmos e continuidade das rotas.
+- `OsrmIntegrationTest` valida uma resposta real do OSRM e necessita de internet.
 
 ## Uso básico
 
 1. Inicie a aplicação.
-2. Escolha um algoritmo na barra de ferramentas.
-3. Se solicitado, selecione origem e destino.
-4. Aguarde o cálculo e o carregamento da geometria viária.
-5. Consulte as distâncias no mapa e no painel inferior.
-6. Ajuste a velocidade em km/h.
-7. Use **Iniciar veículo**, **Pausar** ou **Parar**.
+2. Selecione um algoritmo na barra superior.
+3. Clique em **Calcular**.
+4. Escolha os pontos e o ponto inicial quando solicitado.
+5. Consulte a rota, as estatísticas e o resumo no painel lateral.
+6. Ajuste a velocidade.
+7. Use **Iniciar**, **Pausar**, **Parar** ou **Limpar**.
 
 ## Legenda dos marcadores
 
-- `E`: escola;
-- `U`: universidade;
-- `B`: bairro;
-- `P`: ponto de embarque;
-- `S`: início da rota;
-- `D`: destino da rota.
+| Marcador | Significado |
+|:---:|---|
+| E | Escola |
+| U | Universidade |
+| B | Bairro |
+| P | Ponto de embarque |
+| S | Início da rota |
+| D | Destino |
 
-## Solução de problemas no VS Code
+## Documentação e prints
 
-### Biblioteca indicada como ausente
+- [Telas e comparativo dos algoritmos](docs/telas-e-comparativo-algoritmos.md);
+- [pasta com os 19 prints da interface](docs/prints/).
 
-Confirme que estes arquivos existem:
+O relatório contém capturas da tela principal, gerenciamento e formulário de pontos, seleções de rota, exportação, resumo ampliado, simulação e resultado visual de cada algoritmo.
+
+## Solução de problemas
+
+### `package org.jxmapviewer... does not exist`
+
+Confirme a existência de:
 
 ```text
 lib/jxmapviewer2-2.8.jar
 lib/commons-logging-1.3.0.jar
 ```
 
-Depois execute:
+No VS Code, execute:
 
-1. `Ctrl+Shift+P`;
-2. **Java: Clean Java Language Server Workspace**;
-3. **Restart and delete**;
-4. aguarde a reimportação do projeto.
+1. `Java: Clean Java Language Server Workspace`;
+2. **Restart and delete**;
+3. aguarde a reimportação do projeto.
 
 ### O mapa não aparece
 
-Verifique a conexão com a internet. Os algoritmos e cálculos locais continuam disponíveis, mas os tiles do OpenStreetMap não podem ser carregados offline.
+Verifique a conexão com a internet. Os cálculos continuam funcionando, mas os tiles do OpenStreetMap não são exibidos offline.
 
-### O percurso aparece como aproximação local
+### A rota usa aproximação local
 
-O OSRM não respondeu dentro do limite configurado. Verifique a internet e calcule a rota novamente.
+O OSRM não respondeu dentro do tempo configurado. Verifique a conexão e calcule novamente. A rota local continua válida para visualização e simulação.
 
 ### Caracteres acentuados incorretos
 
-Compile sempre com `-encoding UTF-8`, conforme os comandos deste README.
+Compile com `-encoding UTF-8`, conforme os comandos deste README.
 
 ## Dependências locais
 
 | Biblioteca | Finalidade |
 |---|---|
 | `jxmapviewer2-2.8.jar` | Exibição e navegação do mapa |
-| `commons-logging-1.3.0.jar` | Dependência de logging utilizada pelo visualizador |
+| `commons-logging-1.3.0.jar` | Logging utilizado pelo visualizador |
 
-Todas as dependências ficam em `lib/`; nenhuma é baixada durante a compilação.
+As dependências são carregadas localmente a partir de `lib/`.

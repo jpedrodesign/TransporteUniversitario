@@ -1,6 +1,5 @@
 package gui;
 
-import model.Ponto;
 import model.Rota;
 import org.jxmapviewer.viewer.GeoPosition;
 import util.RouteGeometry;

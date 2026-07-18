@@ -60,7 +60,7 @@ public class RoutePainter implements Painter<JXMapViewer> {
 
     private void desenharDistancias(Graphics2D g2, JXMapViewer map) {
         if (distanciasTrechos.size() != percurso.size() - 1) return;
-        g2.setFont(new Font("SansSerif", Font.BOLD, 11));
+        g2.setFont(UiTheme.FONT_BOLD.deriveFont(11f));
         for (int i = 0; i < distanciasTrechos.size(); i++) {
             Ponto a = percurso.get(i);
             Ponto b = percurso.get(i + 1);

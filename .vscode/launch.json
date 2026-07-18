@@ -6,7 +6,7 @@
             "name": "Executar Main",
             "request": "launch",
             "mainClass": "Main",
-            "projectName": "rota-universitaria",
+            "console": "integratedTerminal",
             "classPaths": [
                 "${workspaceFolder}/bin",
                 "${workspaceFolder}/lib/jxmapviewer2-2.8.jar",

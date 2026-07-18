@@ -6,7 +6,6 @@ import javax.swing.AbstractButton;
 import javax.swing.SwingUtilities;
 import javax.swing.UIManager;
 import javax.swing.border.Border;
-import javax.swing.border.CompoundBorder;
 import java.awt.BasicStroke;
 import java.awt.Color;
 import java.awt.Dimension;
@@ -20,17 +19,25 @@ import java.awt.Font;
 /** Identidade visual compartilhada por toda a aplicação. */
 public final class UiTheme {
 
-    public static final Color BACKGROUND = new Color(243, 246, 250);
+    public static final Color BACKGROUND = new Color(244, 246, 248);
     public static final Color SURFACE = Color.WHITE;
-    public static final Color PRIMARY = new Color(25, 94, 166);
-    public static final Color PRIMARY_DARK = new Color(17, 67, 119);
-    public static final Color ACCENT = new Color(22, 138, 91);
-    public static final Color DANGER = new Color(190, 53, 53);
-    public static final Color TEXT = new Color(31, 42, 55);
-    public static final Color TEXT_MUTED = new Color(99, 115, 129);
-    public static final Color BORDER = new Color(218, 226, 235);
+    public static final Color SURFACE_ALT = new Color(244, 246, 248);
+    public static final Color PRIMARY = new Color(24, 75, 122);
+    public static final Color PRIMARY_DARK = new Color(18, 57, 94);
+    public static final Color PRIMARY_LIGHT = new Color(220, 238, 255);
+    public static final Color ACCENT = new Color(46, 158, 91);
+    public static final Color DANGER = new Color(214, 69, 69);
+    public static final Color TEXT = new Color(45, 55, 72);
+    public static final Color TEXT_MUTED = new Color(95, 107, 122);
+    public static final Color BORDER = new Color(217, 222, 228);
+    public static final Color BORDER_STRONG = new Color(190, 198, 207);
     public static final Font FONT = new Font("Segoe UI", Font.PLAIN, 13);
     public static final Font FONT_BOLD = FONT.deriveFont(Font.BOLD);
+    public static final Font TITLE_FONT = FONT_BOLD.deriveFont(18f);
+    public static final Font SUBTITLE_FONT = FONT_BOLD.deriveFont(15f);
+    public static final int SPACE_XS = 8;
+    public static final int SPACE_MD = 16;
+    public static final int SPACE_LG = 20;
     private static final double SCALE = detectarEscala();
 
     private UiTheme() {
@@ -52,6 +59,7 @@ public final class UiTheme {
         UIManager.put("ToggleButton.focus", PRIMARY);
         UIManager.put("TextField.font", FONT);
         UIManager.put("TextArea.font", FONT);
+        UIManager.put("TextPane.font", FONT);
         UIManager.put("ComboBox.font", FONT);
         UIManager.put("Spinner.font", FONT);
         UIManager.put("Tree.font", FONT);
@@ -59,6 +67,31 @@ public final class UiTheme {
         UIManager.put("OptionPane.background", SURFACE);
         UIManager.put("ProgressBar.foreground", ACCENT);
         UIManager.put("ProgressBar.background", BORDER);
+        UIManager.put("Table.font", FONT.deriveFont(12f));
+        UIManager.put("TableHeader.font", FONT_BOLD.deriveFont(12f));
+        UIManager.put("TabbedPane.font", FONT_BOLD.deriveFont(13f));
+        UIManager.put("TabbedPane.background", SURFACE);
+        UIManager.put("TabbedPane.foreground", TEXT);
+        UIManager.put("TabbedPane.selected", PRIMARY_LIGHT);
+        UIManager.put("TabbedPane.contentAreaColor", SURFACE);
+        UIManager.put("TabbedPane.focus", PRIMARY);
+        UIManager.put("TitledBorder.font", SUBTITLE_FONT);
+        UIManager.put("ScrollBar.width", scale(11));
+        UIManager.put("ScrollBar.thumb", new Color(174, 184, 196));
+        UIManager.put("ScrollBar.track", BACKGROUND);
+        UIManager.put("Separator.foreground", BORDER);
+        UIManager.put("TextField.selectionBackground", PRIMARY_LIGHT);
+        UIManager.put("TextField.selectionForeground", TEXT);
+        UIManager.put("TextField.background", SURFACE);
+        UIManager.put("TextField.foreground", TEXT);
+        UIManager.put("FormattedTextField.background", SURFACE);
+        UIManager.put("FormattedTextField.foreground", TEXT);
+        UIManager.put("ComboBox.background", SURFACE);
+        UIManager.put("ComboBox.foreground", TEXT);
+        UIManager.put("List.background", SURFACE);
+        UIManager.put("List.foreground", TEXT);
+        UIManager.put("TextArea.background", SURFACE);
+        UIManager.put("TextArea.foreground", TEXT);
     }
 
     public static int scale(int value) {
@@ -96,9 +129,7 @@ public final class UiTheme {
     }
 
     public static Border cardBorder(String title) {
-        Border titleBorder = BorderFactory.createTitledBorder(
-                BorderFactory.createLineBorder(BORDER), title, 0, 0, FONT_BOLD, TEXT);
-        return new CompoundBorder(titleBorder, BorderFactory.createEmptyBorder(8, 10, 10, 10));
+        return new RoundedCardBorder(title);
     }
 
     public static void card(JComponent component, String title) {

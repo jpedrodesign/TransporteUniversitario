@@ -58,20 +58,14 @@ public class PontoTableModel extends AbstractTableModel {
     @Override
     public Object getValueAt(int row, int col) {
         Ponto p = pontos.get(row);
-        switch (col) {
-            case 0:
-                return p.getNome();
-            case 1:
-                return p.getTipo().getRotulo();
-            case 2:
-                return p.getQuantidadeAlunos();
-            case 3:
-                return String.format("%.6f", p.getLatitude());
-            case 4:
-                return String.format("%.6f", p.getLongitude());
-            default:
-                return "";
-        }
+        return switch (col) {
+            case 0 -> p.getNome();
+            case 1 -> p.getTipo().getRotulo();
+            case 2 -> p.getQuantidadeAlunos();
+            case 3 -> String.format("%.6f", p.getLatitude());
+            case 4 -> String.format("%.6f", p.getLongitude());
+            default -> "";
+        };
     }
 
     @Override
